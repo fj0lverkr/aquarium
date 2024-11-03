@@ -4,6 +4,6 @@
 
 [resource]
 script = ExtResource("1_47wrj")
-_name = "health"
+_type = 0
 _max_value = 100.0
 _value = 200.0

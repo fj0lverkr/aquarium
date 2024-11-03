@@ -11,8 +11,10 @@ extends Resource
 ##
 ## E.g. Health 100.0
 
+enum StatusType {HEALTH, HUNGER, ENERGY, }
+
 @export
-var _name: String
+var _type: StatusType
 
 @export
 var _max_value: float
@@ -20,12 +22,14 @@ var _max_value: float
 @export
 var _value: float
 
-signal on_depleted
+signal on_depleted(s: StatusType)
 
 
 func _clamp_value() -> void:
     _value = _value if _value <= _max_value else _max_value
     _value = _value if _value > 0.0 else 0.0
+    if _value <= 0.0:
+        on_depleted.emit(_type)
 
 
 func setup() -> void:
@@ -33,7 +37,11 @@ func setup() -> void:
 
 
 func get_stat_name() -> String:
-    return _name
+    return StatusType.keys()[_type]
+
+
+func get_stat_type() -> StatusType:
+    return _type
 
 
 func get_stat_value() -> float:
@@ -42,12 +50,9 @@ func get_stat_value() -> float:
 
 func decrease(by: float) -> void:
     _value -= by
-    if _value <= 0:
-        _value = 0
-        on_depleted.emit()
+    _clamp_value()
 
 
 func increase(by: float) -> void:
     _value += by
-    if _value > _max_value:
-        _value = _max_value
+    _clamp_value()

@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://cawk3n5xlq5uk"]
+[gd_scene load_steps=10 format=3 uid="uid://cawk3n5xlq5uk"]
 
 [ext_resource type="Script" path="res://scenes/fish/fish.gd" id="1_7qprw"]
 [ext_resource type="Script" path="res://resources/status_value.gd" id="2_58juq"]
@@ -6,9 +6,21 @@
 [ext_resource type="Resource" uid="uid://coqknxmqor5xm" path="res://resources/sv_health.tres" id="3_m7s7w"]
 [ext_resource type="Script" path="res://resources/status_values.gd" id="4_ja1lq"]
 
+[sub_resource type="Resource" id="Resource_st2kk"]
+script = ExtResource("2_58juq")
+_type = 1
+_max_value = 100.0
+_value = -1.0
+
+[sub_resource type="Resource" id="Resource_0b6xj"]
+script = ExtResource("2_58juq")
+_type = 2
+_max_value = 200.0
+_value = 200.0
+
 [sub_resource type="Resource" id="Resource_jtjqd"]
 script = ExtResource("4_ja1lq")
-_collection = Array[ExtResource("2_58juq")]([ExtResource("3_m7s7w")])
+_collection = Array[ExtResource("2_58juq")]([ExtResource("3_m7s7w"), SubResource("Resource_st2kk"), SubResource("Resource_0b6xj")])
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_j585j"]
 radius = 7.0
