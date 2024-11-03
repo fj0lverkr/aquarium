@@ -1,7 +1,6 @@
-[gd_scene load_steps=3 format=3 uid="uid://b684baeyqrdj2"]
+[gd_scene load_steps=2 format=3 uid="uid://b684baeyqrdj2"]
 
 [ext_resource type="Texture2D" uid="uid://8ok658sjc7wy" path="res://assets/images/backgrounds/ocean.png" id="1_dm1vb"]
-[ext_resource type="PackedScene" uid="uid://cawk3n5xlq5uk" path="res://scenes/fish/fish.tscn" id="2_18ede"]
 
 [node name="TestScene" type="Node2D"]
 
@@ -14,6 +13,3 @@ scale = Vector2(4.54019, 4.77057)
 size_flags_horizontal = 3
 size_flags_vertical = 3
 texture = ExtResource("1_dm1vb")
-
-[node name="Fish" parent="." instance=ExtResource("2_18ede")]
-position = Vector2(556, 299)
