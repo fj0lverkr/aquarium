@@ -23,6 +23,13 @@ gdscript/warnings/unused_signal=0
 
 window/stretch/mode="canvas_items"
 
+[layer_names]
+
+2d_physics/layer_1="Fish"
+2d_physics/layer_2="Food"
+2d_physics/layer_3="Decor"
+2d_physics/layer_4="Toys"
+
 [rendering]
 
 textures/canvas_textures/default_texture_filter=0
