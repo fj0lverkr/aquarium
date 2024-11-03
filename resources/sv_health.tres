@@ -1,9 +1,0 @@
-[gd_resource type="Resource" script_class="StatusValue" load_steps=2 format=3 uid="uid://coqknxmqor5xm"]
-
-[ext_resource type="Script" path="res://resources/status_value.gd" id="1_47wrj"]
-
-[resource]
-script = ExtResource("1_47wrj")
-_type = 0
-_max_value = 100.0
-_value = 200.0
