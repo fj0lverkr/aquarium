@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="StatusCollection" load_steps=4 format=3 uid="uid://w53lbdr7r37q"]
+
+[ext_resource type="Script" path="res://resources/status_value.gd" id="1_n80hk"]
+[ext_resource type="Resource" uid="uid://coqknxmqor5xm" path="res://resources/sv_health.tres" id="2_7ee65"]
+[ext_resource type="Script" path="res://resources/status_values.gd" id="2_71oh0"]
+
+[resource]
+script = ExtResource("2_71oh0")
+_collection = Array[ExtResource("1_n80hk")]([ExtResource("2_7ee65")])

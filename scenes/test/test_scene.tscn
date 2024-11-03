@@ -1,17 +1,19 @@
-[gd_scene load_steps=2 format=3 uid="uid://b684baeyqrdj2"]
+[gd_scene load_steps=3 format=3 uid="uid://b684baeyqrdj2"]
 
 [ext_resource type="Texture2D" uid="uid://8ok658sjc7wy" path="res://assets/images/backgrounds/ocean.png" id="1_dm1vb"]
+[ext_resource type="PackedScene" uid="uid://cawk3n5xlq5uk" path="res://scenes/fish/fish.tscn" id="2_18ede"]
 
 [node name="TestScene" type="Node2D"]
 
-[node name="CanvasLayer" type="CanvasLayer" parent="."]
-
-[node name="TextureRect" type="TextureRect" parent="CanvasLayer"]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="TextureRect" type="TextureRect" parent="."]
+offset_left = -5.0
+offset_top = -3.0
+offset_right = 251.0
+offset_bottom = 139.0
+scale = Vector2(4.54019, 4.77057)
 size_flags_horizontal = 3
 size_flags_vertical = 3
 texture = ExtResource("1_dm1vb")
+
+[node name="Fish" parent="." instance=ExtResource("2_18ede")]
+position = Vector2(556, 299)
