@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="StatusCollection" load_steps=6 format=3 uid="uid://dgpu4dhg107xd"]
+
+[ext_resource type="Script" path="res://resources/status_value.gd" id="1_awb0p"]
+[ext_resource type="Script" path="res://resources/status_values.gd" id="2_ypjnn"]
+
+[sub_resource type="Resource" id="Resource_8s8fb"]
+script = ExtResource("1_awb0p")
+_type = 0
+_max_value = 100.0
+_value = 100.0
+
+[sub_resource type="Resource" id="Resource_nrax7"]
+script = ExtResource("1_awb0p")
+_type = 1
+_max_value = 400.0
+_value = 200.0
+
+[sub_resource type="Resource" id="Resource_t5yc0"]
+script = ExtResource("1_awb0p")
+_type = 2
+_max_value = 200.0
+_value = 200.0
+
+[resource]
+script = ExtResource("2_ypjnn")
+_collection = Array[ExtResource("1_awb0p")]([SubResource("Resource_8s8fb"), SubResource("Resource_nrax7"), SubResource("Resource_t5yc0")])

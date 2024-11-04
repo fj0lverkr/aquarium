@@ -11,12 +11,13 @@ config_version=5
 [application]
 
 config/name="Aquarium"
-run/main_scene="res://scenes/test/test_scene.tscn"
+run/main_scene="res://scenes/tank/test_tank.tscn"
 config/features=PackedStringArray("4.3", "Mobile")
 config/icon="res://icon.svg"
 
 [autoload]
 
+Util="*res://singletons/util.gd"
 TankManager="*res://singletons/tank_manager.gd"
 
 [debug]
