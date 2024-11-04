@@ -15,6 +15,10 @@ run/main_scene="res://scenes/test/test_scene.tscn"
 config/features=PackedStringArray("4.3", "Mobile")
 config/icon="res://icon.svg"
 
+[autoload]
+
+TankManager="*res://singletons/tank_manager.gd"
+
 [debug]
 
 gdscript/warnings/unused_signal=0
@@ -26,6 +30,7 @@ window/stretch/mode="canvas_items"
 [layer_names]
 
 2d_physics/layer_1="Fish"
+2d_navigation/layer_1="Fish"
 2d_physics/layer_2="Food"
 2d_physics/layer_3="Decor"
 2d_physics/layer_4="Toys"

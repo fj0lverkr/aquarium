@@ -1,7 +1,31 @@
-[gd_scene load_steps=3 format=3 uid="uid://b684baeyqrdj2"]
+[gd_scene load_steps=9 format=3 uid="uid://b684baeyqrdj2"]
 
 [ext_resource type="Texture2D" uid="uid://8ok658sjc7wy" path="res://assets/images/backgrounds/ocean.png" id="1_dm1vb"]
 [ext_resource type="PackedScene" uid="uid://byup1sgiqtkak" path="res://scenes/fish/blue_tang.tscn" id="2_8ybah"]
+[ext_resource type="Script" path="res://resources/status_value.gd" id="3_a2fbj"]
+[ext_resource type="Script" path="res://resources/status_values.gd" id="4_ogyb0"]
+
+[sub_resource type="Resource" id="Resource_8s8fb"]
+script = ExtResource("3_a2fbj")
+_type = 0
+_max_value = 100.0
+_value = 100.0
+
+[sub_resource type="Resource" id="Resource_nrax7"]
+script = ExtResource("3_a2fbj")
+_type = 1
+_max_value = 400.0
+_value = 200.0
+
+[sub_resource type="Resource" id="Resource_t5yc0"]
+script = ExtResource("3_a2fbj")
+_type = 2
+_max_value = 200.0
+_value = 200.0
+
+[sub_resource type="Resource" id="Resource_lym7p"]
+script = ExtResource("4_ogyb0")
+_collection = Array[ExtResource("3_a2fbj")]([SubResource("Resource_8s8fb"), SubResource("Resource_nrax7"), SubResource("Resource_t5yc0")])
 
 [node name="TestScene" type="Node2D"]
 
@@ -17,3 +41,4 @@ texture = ExtResource("1_dm1vb")
 
 [node name="BlueTang" parent="." instance=ExtResource("2_8ybah")]
 position = Vector2(595, 295)
+_status_collection = SubResource("Resource_lym7p")
