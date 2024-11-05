@@ -1,10 +1,19 @@
-[gd_scene load_steps=2 format=3 uid="uid://cawk3n5xlq5uk"]
+[gd_scene load_steps=4 format=3 uid="uid://cawk3n5xlq5uk"]
 
 [ext_resource type="Script" path="res://scenes/fish/fish.gd" id="1_7qprw"]
+[ext_resource type="Texture2D" uid="uid://c5fknp4uejmat" path="res://assets/images/effects/bubble_6_6.png" id="2_63b5g"]
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_vmwh6"]
+lifetime_randomness = 0.75
+particle_flag_disable_z = true
+gravity = Vector3(0, -98, 0)
+scale_min = 5.0
+scale_max = 5.0
+turbulence_enabled = true
 
 [node name="Fish" type="CharacterBody2D"]
 scale = Vector2(5, 5)
-collision_mask = 12
+collision_mask = 13
 script = ExtResource("1_7qprw")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
@@ -14,8 +23,22 @@ rotation = 1.5708
 [node name="Sprite2D" type="Sprite2D" parent="."]
 
 [node name="NavigationAgent2D" type="NavigationAgent2D" parent="."]
-avoidance_enabled = true
-radius = 50.0
+
+[node name="MouthBubblesEmitter" type="GPUParticles2D" parent="."]
+amount = 20
+amount_ratio = 0.4
+process_material = SubResource("ParticleProcessMaterial_vmwh6")
+texture = ExtResource("2_63b5g")
+lifetime = 30.0
+explosiveness = 0.5
+randomness = 0.5
+
+[node name="MarkerMouth" type="Marker2D" parent="."]
+
+[node name="AvoidanceArea" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AvoidanceArea"]
 
 [connection signal="navigation_finished" from="NavigationAgent2D" to="." method="_on_navigation_finished"]
 [connection signal="velocity_computed" from="NavigationAgent2D" to="." method="_on_velocity_computed"]
+[connection signal="body_entered" from="AvoidanceArea" to="." method="_on_avoidance_area_body_entered"]

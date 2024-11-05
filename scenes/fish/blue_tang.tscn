@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3 uid="uid://byup1sgiqtkak"]
+[gd_scene load_steps=6 format=3 uid="uid://byup1sgiqtkak"]
 
 [ext_resource type="PackedScene" uid="uid://cawk3n5xlq5uk" path="res://scenes/fish/fish.tscn" id="1_yyvfo"]
 [ext_resource type="Script" path="res://scenes/fish/blue_tang.gd" id="2_b0ull"]
@@ -8,6 +8,9 @@
 radius = 7.0
 height = 24.0
 
+[sub_resource type="CircleShape2D" id="CircleShape2D_jmc7n"]
+radius = 9.40213
+
 [node name="BlueTang" instance=ExtResource("1_yyvfo")]
 script = ExtResource("2_b0ull")
 
@@ -16,3 +19,13 @@ shape = SubResource("CapsuleShape2D_mpbkc")
 
 [node name="Sprite2D" parent="." index="1"]
 texture = ExtResource("3_do4es")
+
+[node name="MouthBubblesEmitter" parent="." index="3"]
+position = Vector2(15.2, -4)
+
+[node name="MarkerMouth" parent="." index="4"]
+position = Vector2(11.6, -1.4)
+
+[node name="CollisionShape2D" parent="AvoidanceArea" index="0"]
+position = Vector2(9.60001, -3)
+shape = SubResource("CircleShape2D_jmc7n")

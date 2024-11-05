@@ -27,14 +27,13 @@ size_flags_vertical = 3
 texture = ExtResource("2_kwcev")
 
 [node name="NavigationRegion2D" parent="." index="1"]
+visible = false
 navigation_polygon = SubResource("NavigationPolygon_uwjx0")
 
 [node name="BlueTang" parent="." index="2" instance=ExtResource("3_1fav4")]
 position = Vector2(551, 257)
-collision_mask = 13
 _status_collection = ExtResource("4_emj8k")
 
 [node name="BlueTang2" parent="." index="3" instance=ExtResource("3_1fav4")]
 position = Vector2(547, 448)
-collision_mask = 13
 _status_collection = ExtResource("4_emj8k")

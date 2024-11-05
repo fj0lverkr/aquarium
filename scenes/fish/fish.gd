@@ -3,9 +3,8 @@ extends CharacterBody2D
 
 ## Base class for Fish, all other Fish should inherit from this.
 
-enum State {IDLE, HUNT, WANDER, REST, }
+enum State {IDLE, HUNT, REST, }
 
-const SPEED: float = 200.0
 const LOOK_ROTATE_SPEED: float = 10.0
 const MAX_SMOOTH_LOOK_DEG: float = 95.0
 
@@ -14,12 +13,16 @@ var _nav_agent: NavigationAgent2D = $NavigationAgent2D
 @onready
 var _collider: CollisionShape2D = $CollisionShape2D
 @onready
-var _sprite: Sprite2D = $Sprite2D
+var _bubbles_mouth: GPUParticles2D = $MouthBubblesEmitter
 
 @export
 var _status_collection: StatusCollection
 @export
-var _wait_min_max: Vector2 = Vector2(0.1, 10.0)
+var _wait_min_max: Vector2 = Vector2(2.0, 10.0)
+@export
+var _scale: float = 5.0
+@export
+var _swim_speed: float = 100.0
 
 var _stat_health: StatusValue
 var _stat_hunger: StatusValue
@@ -27,10 +30,12 @@ var _stat_energy: StatusValue
 
 var _current_state: State = State.IDLE
 var _prev_vel_x: float = 0.0
+var _distance_traveled: float = 0.0
 
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	_bubbles_mouth.emitting = false
 	set_physics_process(false)
 	if not _status_collection or _status_collection.get_collection().size() == 0:
 		print("Instance without StatusCollection removed.")
@@ -70,6 +75,7 @@ func _set_destination() -> void:
 	var random_x = randf_range(_get_fish_size(), tank_size.x)
 	var random_y = randf_range(0, tank_size.y)
 	_nav_agent.target_position = Vector2(random_x, random_y)
+	_distance_traveled += global_position.distance_to(_nav_agent.target_position)
 
 
 func _fish_look_at(where: Vector2) -> void:
@@ -86,19 +92,33 @@ func _fish_look_at(where: Vector2) -> void:
 		global_rotation = lerp_angle(global_rotation, angle, get_physics_process_delta_time() * LOOK_ROTATE_SPEED)
 	else:
 		look_at(point)
-	_sprite.flip_v = velocity.x < 0 or (velocity.x == 0 and _prev_vel_x < 0)
+
+	scale = Vector2(_scale, _scale) if velocity.x > 0.0 or (velocity.x == 0.0 and _prev_vel_x < 0.0) else Vector2(_scale, -_scale)
 
 
 func _update_navigation() -> void:
 	var next_nav_point: Vector2 = _nav_agent.get_next_path_position()
-	var initial_velocity: Vector2 = global_position.direction_to(next_nav_point) * SPEED
-	_nav_agent.set_velocity(initial_velocity)
+	velocity = global_position.direction_to(next_nav_point) * _swim_speed
 	_fish_look_at(next_nav_point)
+	move_and_slide()
 
 
 func _get_fish_size() -> float:
 	var s: Vector2 = _collider.shape.get_rect().size
 	return s.x if s.x > s.y else s.y
+
+
+func _rest() -> void:
+	_fish_look_at(Vector2.ZERO)
+	_bubbles_mouth.emitting = true
+	var tween: Tween = create_tween().set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_BOUNCE)
+	tween.tween_property(self, "position:y", position.y - 1, 0.33)
+	tween.set_loops()
+	tween.tween_property(self, "position:y", position.y + 2, 0.33)
+	tween.tween_property(self, "position:y", position.y - 2, 0.33)
+	await Util.wait(randf_range(_wait_min_max.x, _wait_min_max.y))
+	tween.kill()
+	_bubbles_mouth.emitting = false
 
 
 func _on_sv_depleted(s: StatusValue.StatusType) -> void:
@@ -117,13 +137,16 @@ func _on_nav_map_changed(_map: RID) -> void:
 		_set_destination()
 
 
-func _on_velocity_computed(safe_velocity: Vector2) -> void:
-	velocity = safe_velocity
-	move_and_slide()
-
-
 func _on_navigation_finished() -> void:
 	_prev_vel_x = velocity.x
-	_fish_look_at(Vector2.ZERO)
-	await Util.wait(randf_range(_wait_min_max.x, _wait_min_max.y))
+	#_calculate_state()
+	if _current_state == State.REST:
+		await _rest()
+		#_calculate_state()
 	_set_destination()
+
+
+func _on_avoidance_area_body_entered(body: Node2D) -> void:
+	if body == self:
+		return
+	_nav_agent.navigation_finished.emit()
