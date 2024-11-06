@@ -20,8 +20,6 @@ var _status_collection: StatusCollection
 @export
 var _wait_min_max: Vector2 = Vector2(2.0, 10.0)
 @export
-var _scale: float = 5.0
-@export
 var _swim_speed: float = 100.0
 
 var _stat_health: StatusValue
@@ -31,10 +29,12 @@ var _stat_energy: StatusValue
 var _current_state: State = State.IDLE
 var _prev_vel_x: float = 0.0
 var _distance_traveled: float = 0.0
+var _initial_scale: Vector2
 
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	_initial_scale = scale
 	_bubbles_mouth.emitting = false
 	set_physics_process(false)
 	if not _status_collection or _status_collection.get_collection().size() == 0:
@@ -93,7 +93,7 @@ func _fish_look_at(where: Vector2) -> void:
 	else:
 		look_at(point)
 
-	scale = Vector2(_scale, _scale) if velocity.x > 0.0 or (velocity.x == 0.0 and _prev_vel_x < 0.0) else Vector2(_scale, -_scale)
+	scale = _initial_scale if velocity.x > 0.0 or (velocity.x == 0.0 and _prev_vel_x < 0.0) else Vector2(_initial_scale.x, -_initial_scale.y)
 
 
 func _update_navigation() -> void:
