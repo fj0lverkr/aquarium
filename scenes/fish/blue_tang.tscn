@@ -9,7 +9,7 @@ radius = 7.0
 height = 24.0
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_jmc7n"]
-radius = 9.40213
+radius = 10.4
 
 [node name="BlueTang" instance=ExtResource("1_yyvfo")]
 script = ExtResource("2_b0ull")
