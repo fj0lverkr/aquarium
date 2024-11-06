@@ -23,6 +23,7 @@ var _max_value: float
 var _value: float
 
 signal on_depleted(s: StatusType)
+signal on_maxed_out(s: StatusType)
 
 
 func _clamp_value() -> void:
@@ -30,6 +31,8 @@ func _clamp_value() -> void:
     _value = _value if _value > 0.0 else 0.0
     if _value <= 0.0:
         on_depleted.emit(_type)
+    elif _value == _max_value:
+        on_maxed_out.emit(_type)
 
 
 func setup() -> void:

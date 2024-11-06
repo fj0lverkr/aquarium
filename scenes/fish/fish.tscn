@@ -26,7 +26,7 @@ rotation = 1.5708
 
 [node name="MouthBubblesEmitter" type="GPUParticles2D" parent="."]
 amount = 20
-amount_ratio = 0.4
+amount_ratio = 0.8
 process_material = SubResource("ParticleProcessMaterial_vmwh6")
 texture = ExtResource("2_63b5g")
 lifetime = 30.0

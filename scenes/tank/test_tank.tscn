@@ -33,7 +33,3 @@ navigation_polygon = SubResource("NavigationPolygon_uwjx0")
 [node name="BlueTang" parent="." index="2" instance=ExtResource("3_1fav4")]
 position = Vector2(551, 257)
 _status_collection = ExtResource("4_emj8k")
-
-[node name="BlueTang2" parent="." index="3" instance=ExtResource("3_1fav4")]
-position = Vector2(547, 448)
-_status_collection = ExtResource("4_emj8k")
