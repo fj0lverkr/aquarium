@@ -5,7 +5,7 @@ extends CharacterBody2D
 
 enum State {IDLE, HUNT, REST, }
 
-const MAX_SMOOTH_LOOK_DEG: float = 95.0
+const MIN_SMOOTH_LOOK_PI: float = 1.57
 
 @onready
 var _nav_agent: NavigationAgent2D = $NavigationAgent2D
@@ -37,6 +37,7 @@ var _stat_hunger: StatusValue
 var _stat_energy: StatusValue
 
 var _current_state: State = State.IDLE
+var _current_nav_point: Vector2
 var _prev_vel_x: float = 0.0
 var _distance_traveled: float = 0.0
 
@@ -91,29 +92,32 @@ func _set_destination() -> void:
 func _fish_look_at(where: Vector2) -> void:
 	var angle: float
 	var direction: Vector2
+	var tween: Tween = create_tween()
+
 	if _current_state != State.REST:
 		direction = where
 		angle = (where - global_position).angle()
 	else:
 		direction = Vector2.RIGHT if _prev_vel_x > 0.0 else Vector2.LEFT
 		angle = (direction).angle()
-	var angle_dif_deg: float = absf(rad_to_deg(rotation) - rad_to_deg(angle))
-	if angle_dif_deg <= MAX_SMOOTH_LOOK_DEG or _current_state == State.REST:
-		var elapsed: float = 0.0
-		# TODO fix this...
-		while rotation != angle:
-			rotation = lerp_angle(rotation, angle, elapsed)
-			elapsed += get_physics_process_delta_time()
+
+	var correct_angle_diff: float = absf(rad_to_deg(absf(global_rotation) - absf(angle)))
+	print(correct_angle_diff)
+
+	if correct_angle_diff < 95 or _current_state == State.REST:
+		tween.tween_property(self, "rotation", lerp_angle(rotation, angle, 1.0), 0.4)
+		scale = _initial_scale if velocity.x > 0.0 or (velocity.x == 0.0 and _prev_vel_x > 0.0) else Vector2(_initial_scale.x, -_initial_scale.y)
 	else:
 		look_at(direction)
-
-	scale = _initial_scale if velocity.x > 0.0 or (velocity.x == 0.0 and _prev_vel_x > 0.0) else Vector2(_initial_scale.x, -_initial_scale.y)
+		scale = _initial_scale if velocity.x > 0.0 else Vector2(_initial_scale.x, -_initial_scale.y)
 
 
 func _update_navigation() -> void:
 	var next_nav_point: Vector2 = _nav_agent.get_next_path_position()
 	velocity = global_position.direction_to(next_nav_point) * _swim_speed
-	_fish_look_at(next_nav_point)
+	if next_nav_point != _current_nav_point:
+		_fish_look_at(next_nav_point)
+		_current_nav_point = next_nav_point
 	move_and_slide()
 
 
