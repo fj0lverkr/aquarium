@@ -101,15 +101,13 @@ func _fish_look_at(where: Vector2) -> void:
 		direction = Vector2.RIGHT if _prev_vel_x > 0.0 else Vector2.LEFT
 		angle = (direction).angle()
 
-	var correct_angle_diff: float = absf(rad_to_deg(absf(global_rotation) - absf(angle)))
+	var correct_angle_diff: float = absf(rad_to_deg(global_rotation - angle))
 	print(correct_angle_diff)
 
-	if correct_angle_diff < 95 or _current_state == State.REST:
+	if correct_angle_diff < 90 or _current_state == State.REST:
 		tween.tween_property(self, "rotation", lerp_angle(rotation, angle, 1.0), 0.4)
-		scale = _initial_scale if velocity.x > 0.0 or (velocity.x == 0.0 and _prev_vel_x > 0.0) else Vector2(_initial_scale.x, -_initial_scale.y)
 	else:
 		look_at(direction)
-		scale = _initial_scale if velocity.x > 0.0 else Vector2(_initial_scale.x, -_initial_scale.y)
 
 
 func _update_navigation() -> void:
@@ -118,12 +116,26 @@ func _update_navigation() -> void:
 	if next_nav_point != _current_nav_point:
 		_fish_look_at(next_nav_point)
 		_current_nav_point = next_nav_point
+	_correct_orientation()
 	move_and_slide()
 
 
 func _get_fish_size() -> float:
 	var s: Vector2 = _collider.shape.get_rect().size
 	return s.x if s.x > s.y else s.y
+
+
+func _correct_orientation() -> void:
+	var new_scale: Vector2
+
+	if velocity.x > 0.0 or (velocity.x == 0.0 and velocity.y == 0.0 and _prev_vel_x > 0.0):
+		new_scale = _initial_scale
+	else:
+		new_scale = Vector2(_initial_scale.x, -_initial_scale.y)
+
+	if new_scale == scale:
+		return
+	scale = new_scale
 
 
 func _rest() -> void:
