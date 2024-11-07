@@ -99,7 +99,11 @@ func _fish_look_at(where: Vector2) -> void:
 		angle = (direction).angle()
 	var angle_dif_deg: float = absf(rad_to_deg(rotation) - rad_to_deg(angle))
 	if angle_dif_deg <= MAX_SMOOTH_LOOK_DEG or _current_state == State.REST:
-		rotation = lerp_angle(rotation, angle, 1)
+		var elapsed: float = 0.0
+		# TODO fix this...
+		while rotation != angle:
+			rotation = lerp_angle(rotation, angle, elapsed)
+			elapsed += get_physics_process_delta_time()
 	else:
 		look_at(direction)
 
