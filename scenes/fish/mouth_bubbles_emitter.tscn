@@ -1,0 +1,22 @@
+[gd_scene load_steps=4 format=3 uid="uid://slroppddfei8"]
+
+[ext_resource type="Texture2D" uid="uid://c5fknp4uejmat" path="res://assets/images/effects/bubble_6_6.png" id="1_036re"]
+[ext_resource type="Script" path="res://scenes/fish/mouth_bubbles_emitter.gd" id="2_s07uu"]
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_vmwh6"]
+lifetime_randomness = 0.75
+particle_flag_disable_z = true
+gravity = Vector3(0, -98, 0)
+scale_min = 5.0
+scale_max = 5.0
+turbulence_enabled = true
+
+[node name="MouthBubblesEmitter" type="GPUParticles2D"]
+amount = 20
+amount_ratio = 0.75
+process_material = SubResource("ParticleProcessMaterial_vmwh6")
+texture = ExtResource("1_036re")
+lifetime = 25.0
+explosiveness = 0.15
+randomness = 0.6
+script = ExtResource("2_s07uu")

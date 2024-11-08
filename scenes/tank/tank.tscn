@@ -1,12 +1,22 @@
-[gd_scene load_steps=2 format=3 uid="uid://bihqfkk8gjp5b"]
+[gd_scene load_steps=3 format=3 uid="uid://bihqfkk8gjp5b"]
 
 [ext_resource type="Script" path="res://scenes/tank/tank.gd" id="1_i38ca"]
+[ext_resource type="PackedScene" uid="uid://c053662450ck0" path="res://scenes/tank/tank_wall.tscn" id="2_rghll"]
 
 [node name="Tank" type="Node2D"]
 script = ExtResource("1_i38ca")
 
 [node name="Backdrop" type="TextureRect" parent="."]
-offset_right = 40.0
-offset_bottom = 40.0
 
 [node name="NavigationRegion2D" type="NavigationRegion2D" parent="."]
+
+[node name="Walls" type="Node" parent="."]
+
+[node name="TankWallLeft" parent="Walls" instance=ExtResource("2_rghll")]
+
+[node name="TankWallRight" parent="Walls" instance=ExtResource("2_rghll")]
+position = Vector2(1135, 3)
+
+[node name="TankWallBottom" parent="Walls" instance=ExtResource("2_rghll")]
+position = Vector2(292, 631)
+scale = Vector2(30.6, 0.0400006)

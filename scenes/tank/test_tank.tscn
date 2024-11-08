@@ -1,14 +1,38 @@
-[gd_scene load_steps=6 format=3 uid="uid://bb1co66a5eg12"]
+[gd_scene load_steps=12 format=3 uid="uid://bb1co66a5eg12"]
 
 [ext_resource type="PackedScene" uid="uid://bihqfkk8gjp5b" path="res://scenes/tank/tank.tscn" id="1_mjk4k"]
 [ext_resource type="Texture2D" uid="uid://8ok658sjc7wy" path="res://assets/images/backgrounds/ocean.png" id="2_kwcev"]
 [ext_resource type="PackedScene" uid="uid://byup1sgiqtkak" path="res://scenes/fish/blue_tang.tscn" id="3_1fav4"]
 [ext_resource type="Resource" uid="uid://b0i207uk21vai" path="res://resources/bt_test_collection.tres" id="4_emj8k"]
+[ext_resource type="Script" path="res://resources/status_value.gd" id="5_mu25p"]
+[ext_resource type="Script" path="res://resources/status_values.gd" id="6_4h0qu"]
 
 [sub_resource type="NavigationPolygon" id="NavigationPolygon_uwjx0"]
-vertices = PackedVector2Array(1138.07, 630.047, 9.00781, 635.938, 9.97656, 11, 1142.92, 11)
+vertices = PackedVector2Array(1137.84, 630.047, 8.90625, 635.938, 4.07813, 48, 1129.15, 48)
 polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3)])
-outlines = Array[PackedVector2Array]([PackedVector2Array(1153, 1, 1148, 640, -1, 646, 0, 1)])
+outlines = Array[PackedVector2Array]([PackedVector2Array(1139, 38, 1148, 640, -1, 646, -6, 38)])
+
+[sub_resource type="Resource" id="Resource_ct5cd"]
+script = ExtResource("5_mu25p")
+_type = 0
+_max_value = 100.0
+_value = 100.0
+
+[sub_resource type="Resource" id="Resource_0fc76"]
+script = ExtResource("5_mu25p")
+_type = 1
+_max_value = 100.0
+_value = 50.0
+
+[sub_resource type="Resource" id="Resource_fjkf0"]
+script = ExtResource("5_mu25p")
+_type = 2
+_max_value = 100.0
+_value = 100.0
+
+[sub_resource type="Resource" id="Resource_236w8"]
+script = ExtResource("6_4h0qu")
+_collection = Array[ExtResource("5_mu25p")]([SubResource("Resource_ct5cd"), SubResource("Resource_0fc76"), SubResource("Resource_fjkf0")])
 
 [node name="TestTank" instance=ExtResource("1_mjk4k")]
 _size = Vector2(1152, 648)
@@ -27,9 +51,13 @@ size_flags_vertical = 3
 texture = ExtResource("2_kwcev")
 
 [node name="NavigationRegion2D" parent="." index="1"]
-visible = false
 navigation_polygon = SubResource("NavigationPolygon_uwjx0")
 
 [node name="BlueTang" parent="." index="2" instance=ExtResource("3_1fav4")]
 position = Vector2(551, 257)
 _status_collection = ExtResource("4_emj8k")
+_swim_speed = 150.0
+
+[node name="BlueTang2" parent="." index="3" instance=ExtResource("3_1fav4")]
+position = Vector2(219, 409)
+_status_collection = SubResource("Resource_236w8")

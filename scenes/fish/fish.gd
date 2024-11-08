@@ -5,14 +5,16 @@ extends CharacterBody2D
 
 enum State {IDLE, HUNT, REST, }
 
-const MIN_SMOOTH_LOOK_PI: float = 1.57
+const ROTATION_TIME: float = 0.4
 
 @onready
 var _nav_agent: NavigationAgent2D = $NavigationAgent2D
 @onready
 var _collider: CollisionShape2D = $CollisionShape2D
 @onready
-var _bubbles_mouth: GPUParticles2D = $MouthBubblesEmitter
+var _mbe_marker: Marker2D = $MarkerMouthBubbles
+@onready
+var _transient_children: Node = $TransientChildren
 
 @export
 var _status_collection: StatusCollection
@@ -44,7 +46,6 @@ var _distance_traveled: float = 0.0
 
 func _ready() -> void:
 	_initial_scale = scale
-	_bubbles_mouth.emitting = false
 	set_physics_process(false)
 	if not _status_collection or _status_collection.get_collection().size() == 0:
 		print("Instance without StatusCollection removed.")
@@ -92,7 +93,6 @@ func _set_destination() -> void:
 func _fish_look_at(where: Vector2) -> void:
 	var angle: float
 	var direction: Vector2
-	var tween: Tween = create_tween()
 
 	if _current_state != State.REST:
 		direction = where
@@ -101,11 +101,9 @@ func _fish_look_at(where: Vector2) -> void:
 		direction = Vector2.RIGHT if _prev_vel_x > 0.0 else Vector2.LEFT
 		angle = (direction).angle()
 
-	var correct_angle_diff: float = absf(rad_to_deg(global_rotation - angle))
-	print(correct_angle_diff)
-
-	if correct_angle_diff < 90 or _current_state == State.REST:
-		tween.tween_property(self, "rotation", lerp_angle(rotation, angle, 1.0), 0.4)
+	if _current_state == State.REST:
+		var tween: Tween = create_tween()
+		tween.tween_property(self, "rotation", lerp_angle(rotation, angle, 1.0), ROTATION_TIME)
 	else:
 		look_at(direction)
 
@@ -140,15 +138,18 @@ func _correct_orientation() -> void:
 
 func _rest() -> void:
 	_fish_look_at(Vector2.ZERO)
-	_bubbles_mouth.emitting = true
+	await Util.wait(ROTATION_TIME)
+	ObjectFactory.spawn_mouth_bubbles(_mbe_marker.global_position, _transient_children)
 	var tween: Tween = create_tween().set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_BOUNCE)
 	tween.tween_property(self, "global_position:y", global_position.y - 1, 0.33)
 	tween.set_loops()
 	tween.tween_property(self, "global_position:y", global_position.y + 2, 0.33)
 	tween.tween_property(self, "global_position:y", global_position.y - 2, 0.33)
 	await Util.wait(randf_range(_wait_min_max.x, _wait_min_max.y))
+	for c: Node in _transient_children.get_children():
+		if c is MoutBubblesEmitter:
+			c.emitting = false
 	tween.kill()
-	_bubbles_mouth.emitting = false
 	_stat_energy.increase(1000)
 
 
@@ -194,3 +195,13 @@ func _on_avoidance_area_body_entered(body: Node2D) -> void:
 	if body == self:
 		return
 	_nav_agent.navigation_finished.emit()
+
+
+func _on_avoidance_area_area_entered(area: Area2D) -> void:
+	if area is TankWall:
+		_nav_agent.navigation_finished.emit()
+
+
+func _on_avoidance_area_area_shape_entered(_area_rid: RID, area: Area2D, _area_shape_index: int, _local_shape_index: int) -> void:
+	if area.get_parent() is Fish and _current_state != State.REST:
+		_nav_agent.navigation_finished.emit()

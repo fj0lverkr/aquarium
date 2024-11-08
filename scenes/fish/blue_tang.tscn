@@ -20,11 +20,8 @@ shape = SubResource("CapsuleShape2D_mpbkc")
 [node name="Sprite2D" parent="." index="1"]
 texture = ExtResource("3_do4es")
 
-[node name="MouthBubblesEmitter" parent="." index="3"]
-position = Vector2(15.2, -4)
-
-[node name="MarkerMouth" parent="." index="4"]
-position = Vector2(11.6, -1.4)
+[node name="MarkerMouthBubbles" parent="." index="3"]
+position = Vector2(16.2, -2.8)
 
 [node name="CollisionShape2D" parent="AvoidanceArea" index="0"]
 position = Vector2(9.60001, -3)
