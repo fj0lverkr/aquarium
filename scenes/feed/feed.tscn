@@ -4,6 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://dar13gtjxsuqf" path="res://assets/images/feed/feed1_s.png" id="1_8shal"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_fs7tv"]
+radius = 13.3417
 
 [sub_resource type="Animation" id="Animation_7d6mo"]
 length = 0.001
@@ -44,17 +45,17 @@ _data = {
 
 [node name="Feed" type="RigidBody2D"]
 collision_layer = 2
-collision_mask = 17
+collision_mask = 19
 mass = 0.01
 script = ExtResource("1_1gr8j")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-shape = SubResource("CircleShape2D_fs7tv")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 scale = Vector2(5, 5)
 texture = ExtResource("1_8shal")
 hframes = 7
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_fs7tv")
 
 [node name="DegradeTimer" type="Timer" parent="."]
 wait_time = 3.0
