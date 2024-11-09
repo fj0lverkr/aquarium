@@ -1,7 +1,8 @@
-[gd_scene load_steps=4 format=3 uid="uid://bihqfkk8gjp5b"]
+[gd_scene load_steps=5 format=3 uid="uid://bihqfkk8gjp5b"]
 
 [ext_resource type="Script" path="res://scenes/tank/tank.gd" id="1_i38ca"]
-[ext_resource type="PackedScene" uid="uid://c053662450ck0" path="res://scenes/tank/tank_wall.tscn" id="2_rghll"]
+[ext_resource type="PackedScene" uid="uid://cl56wdrky5din" path="res://scenes/tank/tank_wall.tscn" id="2_rghll"]
+[ext_resource type="PackedScene" uid="uid://du5gcvlhiw02o" path="res://scenes/tank/tank_bottom.tscn" id="3_6u050"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_w0k4c"]
 size = Vector2(69.9432, 73)
@@ -15,14 +16,13 @@ script = ExtResource("1_i38ca")
 
 [node name="Walls" type="Node" parent="."]
 
+[node name="TankBottom" parent="Walls" instance=ExtResource("3_6u050")]
+position = Vector2(-4, 649)
+
 [node name="TankWallLeft" parent="Walls" instance=ExtResource("2_rghll")]
 
 [node name="TankWallRight" parent="Walls" instance=ExtResource("2_rghll")]
-position = Vector2(1135, 3)
-
-[node name="TankWallBottom" parent="Walls" instance=ExtResource("2_rghll")]
-position = Vector2(292, 631)
-scale = Vector2(30.6, 0.0400006)
+position = Vector2(1136, -4)
 
 [node name="FeederArea" type="Area2D" parent="."]
 collision_layer = 32

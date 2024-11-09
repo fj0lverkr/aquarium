@@ -56,11 +56,20 @@ navigation_polygon = SubResource("NavigationPolygon_uwjx0")
 [node name="BlueTang" parent="." index="2" instance=ExtResource("3_1fav4")]
 position = Vector2(551, 257)
 _status_collection = ExtResource("4_emj8k")
+_wait_min_max = Vector2(2, 10)
 _swim_speed = 150.0
+_initial_scale = Vector2(5, 5)
+_max_scale = Vector2(5, 5)
+_energy_coefficient = 0.25
 
 [node name="BlueTang2" parent="." index="3" instance=ExtResource("3_1fav4")]
 position = Vector2(219, 409)
 _status_collection = SubResource("Resource_236w8")
+_wait_min_max = Vector2(2, 10)
+_swim_speed = 100.0
+_initial_scale = Vector2(5, 5)
+_max_scale = Vector2(5, 5)
+_energy_coefficient = 0.25
 
 [node name="CollisionShape2D" parent="FeederArea" index="0"]
 position = Vector2(582.5, 26.5)

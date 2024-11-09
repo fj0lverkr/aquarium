@@ -55,7 +55,6 @@ func _ready() -> void:
 		NavigationServer2D.map_changed.connect(_on_nav_map_changed)
 
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
 func _physics_process(_delta: float) -> void:
 	if _current_state != State.REST:
 		_update_navigation()
@@ -195,11 +194,6 @@ func _on_avoidance_area_body_entered(body: Node2D) -> void:
 	if body == self:
 		return
 	_nav_agent.navigation_finished.emit()
-
-
-func _on_avoidance_area_area_entered(area: Area2D) -> void:
-	if area is TankWall:
-		_nav_agent.navigation_finished.emit()
 
 
 func _on_avoidance_area_area_shape_entered(_area_rid: RID, area: Area2D, _area_shape_index: int, _local_shape_index: int) -> void:
