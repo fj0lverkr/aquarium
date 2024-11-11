@@ -10,10 +10,11 @@ func spawn_mouth_bubbles(where: Vector2, parent: Node) -> void:
     parent.add_child(mbe)
 
 
-func spawn_feed(where: Vector2) -> void:
+func spawn_feed(where: Vector2, parent: Node) -> void:
     var f: Feed = FEED.instantiate()
     f.global_position = where
     f.mass = 0.001
     f.gravity_scale = 0.05
-    get_tree().root.add_child(f)
+    f.z_index = 0
+    parent.add_child(f)
     SignalBus.on_feed_requested.emit()

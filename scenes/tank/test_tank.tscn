@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://bb1co66a5eg12"]
+[gd_scene load_steps=12 format=3 uid="uid://bb1co66a5eg12"]
 
 [ext_resource type="PackedScene" uid="uid://bihqfkk8gjp5b" path="res://scenes/tank/tank.tscn" id="1_mjk4k"]
 [ext_resource type="Texture2D" uid="uid://8ok658sjc7wy" path="res://assets/images/backgrounds/ocean.png" id="2_kwcev"]
@@ -6,7 +6,6 @@
 [ext_resource type="Resource" uid="uid://b0i207uk21vai" path="res://resources/bt_test_collection.tres" id="4_emj8k"]
 [ext_resource type="Script" path="res://resources/status_value.gd" id="5_mu25p"]
 [ext_resource type="Script" path="res://resources/status_values.gd" id="6_4h0qu"]
-[ext_resource type="PackedScene" uid="uid://bxgo61u12h32s" path="res://scenes/effects/water_overlay.tscn" id="7_3o3rp"]
 
 [sub_resource type="NavigationPolygon" id="NavigationPolygon_uwjx0"]
 vertices = PackedVector2Array(1137.84, 630.047, 8.90625, 635.938, 4.07813, 48, 1129.15, 48)
@@ -76,6 +75,8 @@ _energy_coefficient = 0.25
 position = Vector2(582.5, 26.5)
 scale = Vector2(17.6, 1)
 
-[node name="WaterOverlay" parent="." index="6" instance=ExtResource("7_3o3rp")]
-position = Vector2(524, 321)
+[node name="WaterOverlay" parent="." index="7"]
+position = Vector2(550, 267)
 scale = Vector2(1.5, 1.5)
+
+[editable path="WaterOverlay"]
