@@ -22,6 +22,8 @@ var _transient_children: Node = $TransientChildren
 var _mood_player: AnimationPlayer = $MoodPlayer
 @onready
 var _emotes: Dictionary = {EmoteName.SLEEPING: $SleepEmote, }
+@onready
+var _marker_mouth_eat: Marker2D = $MarkerMouthEat
 
 @export
 var _status_collection: StatusCollection
@@ -39,7 +41,7 @@ var _initial_scale: Vector2 = Vector2(5.0, 5.0)
 @export
 var _max_scale: Vector2 = Vector2(5.0, 5.0)
 @export
-var _energy_coefficient: float = 0.25
+var _energy_coefficient: float = 0.05
 
 var _stat_health: StatusValue
 var _stat_hunger: StatusValue
@@ -49,6 +51,7 @@ var _current_state: State = State.IDLE
 var _current_nav_point: Vector2
 var _prev_vel_x: float = 0.0
 var _distance_traveled: float = 0.0
+var _current_feed_target: Feed = null
 
 
 func _ready() -> void:
@@ -62,10 +65,12 @@ func _ready() -> void:
 	else:
 		_setup()
 		NavigationServer2D.map_changed.connect(_on_nav_map_changed)
-
+		SignalBus.on_feed_picked.connect(_on_feed_picked)
+		
 
 func _physics_process(_delta: float) -> void:
 	if _current_state != State.REST:
+		_calculate_feed_target()
 		_update_navigation()
 
 
@@ -90,11 +95,23 @@ func _check_minimum_stats_present() -> void:
 		queue_free()
 
 
+func get_mouth_position() -> Vector2:
+	return _marker_mouth_eat.global_position
+
+
 func _set_destination() -> void:
-	var tank_size = TankManager.get_swimmable_dimensions(_get_fish_size())
-	var random_x = randf_range(_get_fish_size(), tank_size.x)
-	var random_y = randf_range(0, tank_size.y)
-	_nav_agent.target_position = Vector2(random_x, random_y)
+	match _current_state:
+		State.IDLE:
+			var tank_size = TankManager.get_swimmable_dimensions(_get_fish_size())
+			var random_x = randf_range(_get_fish_size(), tank_size.x)
+			var random_y = randf_range(0, tank_size.y)
+			_nav_agent.target_position = Vector2(random_x, random_y)
+		State.HUNT:
+			if _current_feed_target != null:
+				_nav_agent.target_position = _current_feed_target.global_position
+			else:
+				_current_state = State.IDLE
+				_set_destination()
 	_distance_traveled = global_position.distance_to(_nav_agent.target_position)
 
 
@@ -188,6 +205,20 @@ func _calculate_energy_spent() -> void:
 	_stat_energy.decrease(energy_spent)
 
 
+func _calculate_feed_target() -> void:
+	var feed: Array = get_tree().get_nodes_in_group(Constants.GRP_FEED)
+	if feed.is_empty():
+		_current_feed_target = null
+		return
+	
+	for f: Feed in feed:
+		if _current_feed_target == null or global_position.distance_to(f.global_position) < global_position.distance_to(_current_feed_target.global_position):
+			_current_feed_target = f
+
+	if _current_feed_target != null:
+		_current_state = State.HUNT
+
+
 func _on_sv_depleted(s: StatusValue.StatusType) -> void:
 	match s:
 		StatusValue.StatusType.HEALTH:
@@ -230,3 +261,21 @@ func _on_avoidance_area_body_entered(body: Node2D) -> void:
 func _on_avoidance_area_area_shape_entered(_area_rid: RID, area: Area2D, _area_shape_index: int, _local_shape_index: int) -> void:
 	if area.get_parent() is Fish and _current_state != State.REST:
 		_nav_agent.navigation_finished.emit()
+
+
+func _on_mouth_area_body_entered(body: Node2D) -> void:
+	if not body is Feed:
+		return
+
+	print(body)
+	var f: Feed = body
+	if f.check_pickable(self):
+		_stat_hunger.increase(f.nutri_value)
+		_stat_energy.increase(f.nutri_value * 0.5)
+		_stat_health.increase(f.nutri_value * 0.75)
+
+
+func _on_feed_picked(feed: Feed) -> void:
+	if _current_feed_target == feed:
+		_current_feed_target = null
+		_set_destination()

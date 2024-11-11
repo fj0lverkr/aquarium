@@ -17,6 +17,7 @@ config/icon="res://icon.svg"
 
 [autoload]
 
+Constants="*res://singletons/constants.gd"
 Util="*res://singletons/util.gd"
 TankManager="*res://singletons/tank_manager.gd"
 SignalBus="*res://singletons/signal_bus.gd"
@@ -29,6 +30,10 @@ gdscript/warnings/unused_signal=0
 [display]
 
 window/stretch/mode="canvas_items"
+
+[global_group]
+
+feed=""
 
 [input]
 
