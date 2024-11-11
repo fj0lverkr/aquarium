@@ -267,7 +267,6 @@ func _on_mouth_area_body_entered(body: Node2D) -> void:
 	if not body is Feed:
 		return
 
-	print(body)
 	var f: Feed = body
 	if f.check_pickable(self):
 		_stat_hunger.increase(f.nutri_value)
