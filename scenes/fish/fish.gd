@@ -4,6 +4,9 @@ extends CharacterBody2D
 ## Base class for Fish, all other Fish should inherit from this.
 
 enum State {IDLE, HUNT, REST, }
+enum EmoteName {SLEEPING, }
+
+const EMOTES: Dictionary = {EmoteName.SLEEPING: "sleeping", }
 
 const ROTATION_TIME: float = 0.4
 
@@ -15,6 +18,10 @@ var _collider: CollisionShape2D = $CollisionShape2D
 var _mbe_marker: Marker2D = $MarkerMouthBubbles
 @onready
 var _transient_children: Node = $TransientChildren
+@onready
+var _mood_player: AnimationPlayer = $MoodPlayer
+@onready
+var _emotes: Dictionary = {EmoteName.SLEEPING: $SleepEmote, }
 
 @export
 var _status_collection: StatusCollection
@@ -46,6 +53,8 @@ var _distance_traveled: float = 0.0
 
 func _ready() -> void:
 	_initial_scale = scale
+	for e: Sprite2D in _emotes.values():
+		e.hide()
 	set_physics_process(false)
 	if not _status_collection or _status_collection.get_collection().size() == 0:
 		print("Instance without StatusCollection removed.")
@@ -127,8 +136,10 @@ func _correct_orientation() -> void:
 
 	if velocity.x > 0.0 or (velocity.x == 0.0 and velocity.y == 0.0 and _prev_vel_x > 0.0):
 		new_scale = _initial_scale
+		_flip_emotes(false, false)
 	else:
 		new_scale = Vector2(_initial_scale.x, -_initial_scale.y)
+		_flip_emotes(false, true)
 
 	if new_scale == scale:
 		return
@@ -138,6 +149,7 @@ func _correct_orientation() -> void:
 func _rest() -> void:
 	_fish_look_at(Vector2.ZERO)
 	await Util.wait(ROTATION_TIME)
+	_play_emote(EmoteName.SLEEPING)
 	ObjectFactory.spawn_mouth_bubbles(_mbe_marker.global_position, _transient_children)
 	var tween: Tween = create_tween().set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_BOUNCE)
 	tween.tween_property(self, "global_position:y", global_position.y - 1, 0.33)
@@ -150,6 +162,25 @@ func _rest() -> void:
 			c.emitting = false
 	tween.kill()
 	_stat_energy.increase(1000)
+	_stop_emote(EmoteName.SLEEPING)
+
+
+func _play_emote(emote_name: EmoteName) -> void:
+	var e: Sprite2D = _emotes.get(emote_name)
+	e.show()
+	_mood_player.play(EMOTES.get(emote_name))
+
+
+func _stop_emote(emote_name: EmoteName) -> void:
+	var e: Sprite2D = _emotes.get(emote_name)
+	e.hide()
+	_mood_player.stop()
+
+
+func _flip_emotes(e_flip_v: bool, e_flip_h: bool) -> void:
+	for e: Sprite2D in _emotes.values():
+		e.flip_h = e_flip_h
+		e.flip_v = e_flip_v
 
 
 func _calculate_energy_spent() -> void:
