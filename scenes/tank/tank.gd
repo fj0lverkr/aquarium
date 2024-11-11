@@ -1,4 +1,3 @@
-@tool
 class_name Tank
 extends Node2D
 
@@ -23,7 +22,7 @@ func _ready() -> void:
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(_delta: float) -> void:
-	if Input.is_action_just_pressed("LMB") and _cursor_in_feed_area:
+	if Input.is_action_just_pressed("LeftClick") and _cursor_in_feed_area:
 		ObjectFactory.spawn_feed(get_global_mouse_position())
 
 
