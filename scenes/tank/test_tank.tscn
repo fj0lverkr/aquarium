@@ -67,5 +67,11 @@ position = Vector2(582.5, 26.5)
 scale = Vector2(17.6, 1)
 
 [node name="WaterOverlay" parent="." index="7"]
-position = Vector2(550, 267)
+position = Vector2(576, 309)
 scale = Vector2(1.5, 1.5)
+
+[node name="ShaderOverlay" parent="WaterOverlay" index="1"]
+position = Vector2(-1.33333, 11.6666)
+scale = Vector2(6.17708, 3.54688)
+
+[editable path="WaterOverlay"]
