@@ -1,4 +1,3 @@
-@tool
 class_name Tank
 extends Node2D
 
@@ -11,6 +10,10 @@ var _bd_texture: Texture2D
 
 @onready
 var _backdrop: TextureRect = $Backdrop
+@onready
+var _feed_parent: Node = $Feed
+
+var _cursor_in_feed_area: bool = false
 
 
 # Called when the node enters the scene tree for the first time.
@@ -20,5 +23,14 @@ func _ready() -> void:
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
-	pass
+func _process(_delta: float) -> void:
+	if Input.is_action_just_pressed("LeftClick") and _cursor_in_feed_area:
+		ObjectFactory.spawn_feed(get_global_mouse_position(), _feed_parent)
+
+
+func _on_feeder_area_mouse_exited() -> void:
+	_cursor_in_feed_area = false
+
+
+func _on_feeder_area_mouse_entered() -> void:
+	_cursor_in_feed_area = true

@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="StatusCollection" load_steps=6 format=3 uid="uid://dgpu4dhg107xd"]
+[gd_resource type="Resource" script_class="StatusCollection" load_steps=6 format=3 uid="uid://b0i207uk21vai"]
 
 [ext_resource type="Script" path="res://resources/status_value.gd" id="1_awb0p"]
 [ext_resource type="Script" path="res://resources/status_values.gd" id="2_ypjnn"]

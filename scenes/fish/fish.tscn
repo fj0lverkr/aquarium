@@ -1,15 +1,45 @@
-[gd_scene load_steps=4 format=3 uid="uid://cawk3n5xlq5uk"]
+[gd_scene load_steps=6 format=3 uid="uid://cawk3n5xlq5uk"]
 
 [ext_resource type="Script" path="res://scenes/fish/fish.gd" id="1_7qprw"]
-[ext_resource type="Texture2D" uid="uid://c5fknp4uejmat" path="res://assets/images/effects/bubble_6_6.png" id="2_63b5g"]
+[ext_resource type="Texture2D" uid="uid://q2kc7cackols" path="res://assets/images/emotes/sleep.png" id="2_gf4pu"]
 
-[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_vmwh6"]
-lifetime_randomness = 0.75
-particle_flag_disable_z = true
-gravity = Vector3(0, -98, 0)
-scale_min = 5.0
-scale_max = 5.0
-turbulence_enabled = true
+[sub_resource type="Animation" id="Animation_i1w2k"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("SleepEmote:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [0]
+}
+
+[sub_resource type="Animation" id="Animation_c37x0"]
+resource_name = "sleeping"
+loop_mode = 1
+step = 0.25
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("SleepEmote:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.25, 0.5, 0.75),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [0, 1, 2, 3]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_x1xwv"]
+_data = {
+"RESET": SubResource("Animation_i1w2k"),
+"sleeping": SubResource("Animation_c37x0")
+}
 
 [node name="Fish" type="CharacterBody2D"]
 scale = Vector2(5, 5)
@@ -24,22 +54,37 @@ rotation = 1.5708
 
 [node name="NavigationAgent2D" type="NavigationAgent2D" parent="."]
 
-[node name="MouthBubblesEmitter" type="GPUParticles2D" parent="."]
-amount = 20
-amount_ratio = 0.8
-process_material = SubResource("ParticleProcessMaterial_vmwh6")
-texture = ExtResource("2_63b5g")
-lifetime = 30.0
-explosiveness = 0.5
-randomness = 0.5
+[node name="MarkerMouthBubbles" type="Marker2D" parent="."]
 
-[node name="MarkerMouth" type="Marker2D" parent="."]
+[node name="MarkerMouthEat" type="Marker2D" parent="."]
+scale = Vector2(1, 1)
+
+[node name="MouthArea" type="Area2D" parent="."]
+scale = Vector2(1, 1)
+collision_layer = 0
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="MouthArea"]
 
 [node name="AvoidanceArea" type="Area2D" parent="."]
-collision_layer = 0
+collision_mask = 17
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="AvoidanceArea"]
 
+[node name="TransientChildren" type="Node" parent="."]
+
+[node name="SleepEmote" type="Sprite2D" parent="."]
+position = Vector2(36.4, 31.6)
+texture = ExtResource("2_gf4pu")
+hframes = 4
+
+[node name="MoodPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+"": SubResource("AnimationLibrary_x1xwv")
+}
+
 [connection signal="navigation_finished" from="NavigationAgent2D" to="." method="_on_navigation_finished"]
 [connection signal="velocity_computed" from="NavigationAgent2D" to="." method="_on_velocity_computed"]
+[connection signal="body_entered" from="MouthArea" to="." method="_on_mouth_area_body_entered"]
+[connection signal="area_shape_entered" from="AvoidanceArea" to="." method="_on_avoidance_area_area_shape_entered"]
 [connection signal="body_entered" from="AvoidanceArea" to="." method="_on_avoidance_area_body_entered"]
