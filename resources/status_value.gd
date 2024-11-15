@@ -51,6 +51,10 @@ func get_stat_value() -> float:
     return _value
 
 
+func get_stat_max_value() -> float:
+    return _max_value
+
+
 func decrease(by: float) -> void:
     _value -= by
     _clamp_value()

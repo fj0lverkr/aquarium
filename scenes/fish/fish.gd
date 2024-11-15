@@ -32,6 +32,8 @@ var _status_collection: StatusCollection
 ## or do this from the child classes in stead?
 
 @export
+var _name: String = "Unnamed fish"
+@export
 var _wait_min_max: Vector2 = Vector2(2.0, 10.0)
 @export
 var _swim_speed: float = 100.0
@@ -42,6 +44,11 @@ var _initial_scale: Vector2 = Vector2(5.0, 5.0)
 var _max_scale: Vector2 = Vector2(5.0, 5.0)
 @export
 var _energy_coefficient: float = 0.05
+@export
+var _hunger_coefficient: float = 0.25
+@export
+var _hunger_treshold: float = 0.5
+
 
 var _stat_health: StatusValue
 var _stat_hunger: StatusValue
@@ -95,8 +102,14 @@ func _check_minimum_stats_present() -> void:
 		queue_free()
 
 
-func get_mouth_position() -> Vector2:
-	return _marker_mouth_eat.global_position
+func _update_navigation() -> void:
+	var next_nav_point: Vector2 = _nav_agent.get_next_path_position()
+	velocity = global_position.direction_to(next_nav_point) * _swim_speed
+	if next_nav_point != _current_nav_point:
+		_fish_look_at(next_nav_point)
+		_current_nav_point = next_nav_point
+	_correct_orientation()
+	move_and_slide()
 
 
 func _set_destination() -> void:
@@ -131,16 +144,6 @@ func _fish_look_at(where: Vector2) -> void:
 		tween.tween_property(self, "rotation", lerp_angle(rotation, angle, 1.0), ROTATION_TIME)
 	else:
 		look_at(direction)
-
-
-func _update_navigation() -> void:
-	var next_nav_point: Vector2 = _nav_agent.get_next_path_position()
-	velocity = global_position.direction_to(next_nav_point) * _swim_speed
-	if next_nav_point != _current_nav_point:
-		_fish_look_at(next_nav_point)
-		_current_nav_point = next_nav_point
-	_correct_orientation()
-	move_and_slide()
 
 
 func _get_fish_size() -> float:
@@ -200,9 +203,11 @@ func _flip_emotes(e_flip_v: bool, e_flip_h: bool) -> void:
 		e.flip_v = e_flip_v
 
 
-func _calculate_energy_spent() -> void:
+func _calculate_resources_spent() -> void:
 	var energy_spent: float = _distance_traveled * _energy_coefficient
+	var hunger_gained: float = _distance_traveled * _hunger_coefficient
 	_stat_energy.decrease(energy_spent)
+	_stat_hunger.decrease(hunger_gained)
 
 
 func _calculate_feed_target() -> void:
@@ -215,16 +220,20 @@ func _calculate_feed_target() -> void:
 		if _current_feed_target == null or global_position.distance_to(f.global_position) < global_position.distance_to(_current_feed_target.global_position):
 			_current_feed_target = f
 
-	if _current_feed_target != null:
+	if _current_feed_target != null and _stat_hunger.get_stat_max_value() * _hunger_treshold >= _stat_hunger.get_stat_value():
 		_current_state = State.HUNT
+
+
+func get_mouth_position() -> Vector2:
+	return _marker_mouth_eat.global_position
 
 
 func _on_sv_depleted(s: StatusValue.StatusType) -> void:
 	match s:
 		StatusValue.StatusType.HEALTH:
-			print("fish %s died" % self)
+			print("fish %s died" % self._name)
 		StatusValue.StatusType.HUNGER:
-			print("fish %s is hungry" % self)
+			print("fish %s is hungry" % self._name)
 		StatusValue.StatusType.ENERGY:
 			_current_state = State.REST
 
@@ -232,9 +241,9 @@ func _on_sv_depleted(s: StatusValue.StatusType) -> void:
 func _on_sv_maxed_out(s: StatusValue.StatusType) -> void:
 	match s:
 		StatusValue.StatusType.HEALTH:
-			print("fish %s at full health" % self)
+			print("fish %s at full health" % self._name)
 		StatusValue.StatusType.HUNGER:
-			print("fish %s is full" % self)
+			print("fish %s is full" % self._name)
 		StatusValue.StatusType.ENERGY:
 			_current_state = State.IDLE
 
@@ -246,7 +255,7 @@ func _on_nav_map_changed(_map: RID) -> void:
 
 func _on_navigation_finished() -> void:
 	_prev_vel_x = velocity.x
-	_calculate_energy_spent()
+	_calculate_resources_spent()
 	if _current_state == State.REST:
 		await _rest()
 	_set_destination()
@@ -255,7 +264,8 @@ func _on_navigation_finished() -> void:
 func _on_avoidance_area_body_entered(body: Node2D) -> void:
 	if body == self:
 		return
-	_nav_agent.navigation_finished.emit()
+	#_nav_agent.navigation_finished.emit()
+	_set_destination()
 
 
 func _on_avoidance_area_area_shape_entered(_area_rid: RID, area: Area2D, _area_shape_index: int, _local_shape_index: int) -> void:
