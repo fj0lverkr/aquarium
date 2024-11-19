@@ -228,6 +228,15 @@ func get_mouth_position() -> Vector2:
 	return _marker_mouth_eat.global_position
 
 
+func get_debug_string() -> String:
+	var debug: String = _name
+	debug += "\n En %s/%s" % [_stat_energy.get_stat_value(), _stat_energy.get_stat_max_value()]
+	debug += "\n Hu %s/%s" % [_stat_hunger.get_stat_value(), _stat_hunger.get_stat_max_value()]
+	debug += "\n He %s/%s" % [_stat_health.get_stat_value(), _stat_health.get_stat_max_value()]
+
+	return debug
+
+
 func _on_sv_depleted(s: StatusValue.StatusType) -> void:
 	match s:
 		StatusValue.StatusType.HEALTH:
