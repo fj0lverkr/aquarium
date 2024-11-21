@@ -12,6 +12,8 @@ var _bd_texture: Texture2D
 var _backdrop: TextureRect = $Backdrop
 @onready
 var _feed_parent: Node = $Feed
+@onready
+var _sand_spawner: SandSpawner = $SandSpawner
 
 var _cursor_in_feed_area: bool = false
 
@@ -30,7 +32,9 @@ func _process(_delta: float) -> void:
 
 func _on_feeder_area_mouse_exited() -> void:
 	_cursor_in_feed_area = false
+	_sand_spawner.set_enabled(true)
 
 
 func _on_feeder_area_mouse_entered() -> void:
 	_cursor_in_feed_area = true
+	_sand_spawner.set_enabled(false)
