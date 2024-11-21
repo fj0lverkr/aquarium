@@ -9,6 +9,12 @@ size = Vector2(1175, 20)
 [node name="TankBottom" instance=ExtResource("1_ik3ud")]
 script = ExtResource("2_gt51i")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="." index="0"]
+[node name="ColorRect" type="ColorRect" parent="." index="0"]
+offset_top = -10.0
+offset_right = 1163.0
+offset_bottom = 10.0
+color = Color(0, 0, 0, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." index="1"]
 position = Vector2(577.5, 0)
 shape = SubResource("RectangleShape2D_c64cq")

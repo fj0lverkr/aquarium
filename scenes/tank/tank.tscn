@@ -34,6 +34,8 @@ shape = SubResource("RectangleShape2D_w0k4c")
 
 [node name="Feed" type="Node" parent="."]
 
+[node name="Sand" type="Node" parent="."]
+
 [node name="WaterOverlay" parent="." instance=ExtResource("4_gu3q3")]
 z_index = 999
 
