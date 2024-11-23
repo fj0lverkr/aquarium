@@ -6,6 +6,8 @@ const ANIM_FADE_OUT: String = "fade_out"
 @onready
 var _degrade_timer: Timer = $DegradeTimer
 @onready
+var _float_timer: Timer = $FloatTimer
+@onready
 var _anim_player: AnimationPlayer = $AnimationPlayer
 @onready
 var _init_pos = get_position()
@@ -13,7 +15,7 @@ var _init_pos = get_position()
 var _time: float = 0.0
 var _amplitude: float = 1.0
 var _freq: float = 1.0
-var _floating: bool = false
+var _floating: bool = true
 var _picked_by: Fish = null
 
 var nutri_value: float = 5.0
@@ -21,13 +23,19 @@ var nutri_value: float = 5.0
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	pass
+	_float_timer.wait_time = randf_range(0.25, 10.0)
+	_float_timer.start()
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _physics_process(delta: float) -> void:
 	if not sleeping and _picked_by == null:
-		_aquatic_move(delta)
+		if linear_velocity.y <= 5 and not _floating:
+			freeze = true
+			sleeping = true
+			sleeping_state_changed.emit()
+		else:
+			_aquatic_move(delta)
 	elif _picked_by != null:
 		global_position = _picked_by.get_mouth_position()
 
@@ -68,3 +76,7 @@ func _on_degrade_timer_timeout() -> void:
 func _on_animation_player_animation_finished(anim_name: StringName) -> void:
 	if anim_name == ANIM_FADE_OUT:
 		queue_free()
+
+
+func _on_float_timer_timeout() -> void:
+	_floating = false

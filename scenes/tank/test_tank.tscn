@@ -22,8 +22,8 @@ _value = 50.0
 [sub_resource type="Resource" id="Resource_fjkf0"]
 script = ExtResource("5_mu25p")
 _type = 2
-_max_value = 100.0
-_value = 100.0
+_max_value = 400.0
+_value = 400.0
 
 [sub_resource type="Resource" id="Resource_236w8"]
 script = ExtResource("6_4h0qu")
@@ -54,7 +54,6 @@ texture = ExtResource("2_kwcev")
 position = Vector2(551, 257)
 _status_collection = ExtResource("4_emj8k")
 _name = "Bib"
-_swim_speed = 150.0
 
 [node name="BlueTang2" parent="." index="3" instance=ExtResource("3_1fav4")]
 position = Vector2(219, 409)

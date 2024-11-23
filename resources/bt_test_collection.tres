@@ -13,7 +13,7 @@ _value = 100.0
 script = ExtResource("1_awb0p")
 _type = 1
 _max_value = 400.0
-_value = 200.0
+_value = 400.0
 
 [sub_resource type="Resource" id="Resource_t5yc0"]
 script = ExtResource("1_awb0p")

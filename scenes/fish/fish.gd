@@ -36,7 +36,7 @@ var _name: String = "Unnamed fish"
 @export
 var _wait_min_max: Vector2 = Vector2(2.0, 10.0)
 @export
-var _swim_speed: float = 100.0
+var _swim_speed: float = 0 # 100.0
 ## TODO: use this and a max scale to gradually have the fish grow into an adult.
 @export
 var _initial_scale: Vector2 = Vector2(5.0, 5.0)
