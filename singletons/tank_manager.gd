@@ -11,5 +11,5 @@ func get_current_tank() -> Tank:
     return _current_tank
 
 
-func get_swimmable_area(fish_size: float) -> Dictionary:
-    return _current_tank.get_swimmable_area(fish_size)
+func get_random_point_in_tank() -> Vector2:
+    return _current_tank.get_random_point_in_tank()
