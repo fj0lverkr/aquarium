@@ -7,11 +7,6 @@
 [ext_resource type="Script" path="res://resources/status_value.gd" id="5_mu25p"]
 [ext_resource type="Script" path="res://resources/status_values.gd" id="6_4h0qu"]
 
-[sub_resource type="NavigationPolygon" id="NavigationPolygon_uwjx0"]
-vertices = PackedVector2Array(1137.84, 630.047, 8.90625, 635.938, 4.07813, 48, 1129.15, 48)
-polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3)])
-outlines = Array[PackedVector2Array]([PackedVector2Array(1139, 38, 1148, 640, -1, 646, -6, 38)])
-
 [sub_resource type="Resource" id="Resource_ct5cd"]
 script = ExtResource("5_mu25p")
 _type = 0
@@ -34,11 +29,16 @@ _value = 100.0
 script = ExtResource("6_4h0qu")
 _collection = Array[ExtResource("5_mu25p")]([SubResource("Resource_ct5cd"), SubResource("Resource_0fc76"), SubResource("Resource_fjkf0")])
 
+[sub_resource type="NavigationPolygon" id="NavigationPolygon_uwjx0"]
+vertices = PackedVector2Array(1137.84, 630.047, 8.90625, 635.938, 4.07813, 48, 1129.15, 48)
+polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3)])
+outlines = Array[PackedVector2Array]([PackedVector2Array(1139, 38, 1148, 640, -1, 646, -6, 38)])
+
 [node name="TestTank" instance=ExtResource("1_mjk4k")]
 _size = Vector2(1152, 648)
 _bd_texture = ExtResource("2_kwcev")
 
-[node name="Backdrop" parent="." index="0"]
+[node name="Backdrop" parent="." index="1"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -49,9 +49,6 @@ grow_vertical = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 texture = ExtResource("2_kwcev")
-
-[node name="NavigationRegion2D" parent="." index="1"]
-navigation_polygon = SubResource("NavigationPolygon_uwjx0")
 
 [node name="BlueTang" parent="." index="2" instance=ExtResource("3_1fav4")]
 position = Vector2(551, 257)
@@ -64,16 +61,19 @@ position = Vector2(219, 409)
 _status_collection = SubResource("Resource_236w8")
 _name = "Bob"
 
+[node name="NavigationRegion2D" parent="." index="4"]
+navigation_polygon = SubResource("NavigationPolygon_uwjx0")
+
 [node name="CollisionShape2D" parent="FeederArea" index="0"]
 position = Vector2(582.5, 26.5)
 scale = Vector2(17.6, 1)
 
-[node name="WaterOverlay" parent="." index="8"]
+[node name="WaterOverlay" parent="." index="9"]
 position = Vector2(576, 309)
 scale = Vector2(1.5, 1.5)
 
 [node name="ShaderOverlay" parent="WaterOverlay" index="1"]
-position = Vector2(-1.33333, 11.6666)
-scale = Vector2(6.17708, 3.54688)
+position = Vector2(-2.21729e-05, 11.6667)
+scale = Vector2(6, 3.43229)
 
 [editable path="WaterOverlay"]

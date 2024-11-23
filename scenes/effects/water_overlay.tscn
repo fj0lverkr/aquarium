@@ -33,6 +33,4 @@ texture = ExtResource("1_mlq4y")
 
 [node name="ShaderOverlay" type="Sprite2D" parent="."]
 material = SubResource("ShaderMaterial_u0mna")
-position = Vector2(3.49998, 6.99998)
-scale = Vector2(8.47656, 4.875)
 texture = ExtResource("2_ixhyl")

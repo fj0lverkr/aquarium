@@ -115,10 +115,7 @@ func _update_navigation() -> void:
 func _set_destination() -> void:
 	match _current_state:
 		State.IDLE:
-			var tank_size = TankManager.get_swimmable_dimensions(_get_fish_size())
-			var random_x = randf_range(_get_fish_size(), tank_size.x)
-			var random_y = randf_range(0, tank_size.y)
-			_nav_agent.target_position = Vector2(random_x, random_y)
+			_nav_agent.target_position = _get_random_nav_target()
 		State.HUNT:
 			if _current_feed_target != null:
 				_nav_agent.target_position = _current_feed_target.global_position
@@ -126,6 +123,20 @@ func _set_destination() -> void:
 				_current_state = State.IDLE
 				_set_destination()
 	_distance_traveled = global_position.distance_to(_nav_agent.target_position)
+
+
+func _get_random_nav_target() -> Vector2:
+	var tank_size: Dictionary = TankManager.get_swimmable_area(_get_fish_size())
+	var tank_min_vals: Vector2 = tank_size.min
+	var tank_max_vals: Vector2 = tank_size.max
+	var random_x: float = randf_range(tank_min_vals.x, tank_max_vals.x)
+	var random_y: float = randf_range(tank_min_vals.y, tank_max_vals.y)
+	var result: Vector2 = Vector2(random_x, random_y)
+	print(result.distance_to(global_position))
+	if result.distance_to(global_position) > _get_fish_size() * 2:
+		return result
+	else:
+		return _get_random_nav_target()
 
 
 func _fish_look_at(where: Vector2) -> void:
@@ -147,7 +158,7 @@ func _fish_look_at(where: Vector2) -> void:
 
 
 func _get_fish_size() -> float:
-	var s: Vector2 = _collider.shape.get_rect().size
+	var s: Vector2 = _collider.shape.get_rect().size * scale
 	return s.x if s.x > s.y else s.y
 
 
@@ -240,9 +251,11 @@ func get_debug_string() -> String:
 func _on_sv_depleted(s: StatusValue.StatusType) -> void:
 	match s:
 		StatusValue.StatusType.HEALTH:
-			print("fish %s died" % self._name)
+			#print("fish %s died" % self._name)
+			pass
 		StatusValue.StatusType.HUNGER:
-			print("fish %s is hungry" % self._name)
+			#print("fish %s is hungry" % self._name)
+			pass
 		StatusValue.StatusType.ENERGY:
 			_current_state = State.REST
 
@@ -250,9 +263,11 @@ func _on_sv_depleted(s: StatusValue.StatusType) -> void:
 func _on_sv_maxed_out(s: StatusValue.StatusType) -> void:
 	match s:
 		StatusValue.StatusType.HEALTH:
-			print("fish %s at full health" % self._name)
+			#print("fish %s at full health" % self._name)
+			pass
 		StatusValue.StatusType.HUNGER:
-			print("fish %s is full" % self._name)
+			#print("fish %s is full" % self._name)
+			pass
 		StatusValue.StatusType.ENERGY:
 			_current_state = State.IDLE
 
@@ -273,7 +288,6 @@ func _on_navigation_finished() -> void:
 func _on_avoidance_area_body_entered(body: Node2D) -> void:
 	if body == self:
 		return
-	#_nav_agent.navigation_finished.emit()
 	_set_destination()
 
 
