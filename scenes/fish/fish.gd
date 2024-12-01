@@ -7,6 +7,7 @@ enum State {IDLE, HUNT, REST, }
 enum EmoteName {SLEEPING, }
 
 const EMOTES: Dictionary = {EmoteName.SLEEPING: "sleeping", }
+const SWIM: String = "swim"
 
 const ROTATION_TIME: float = 0.4
 
@@ -24,6 +25,8 @@ var _mood_player: AnimationPlayer = $MoodPlayer
 var _emotes: Dictionary = {EmoteName.SLEEPING: $SleepEmote, }
 @onready
 var _marker_mouth_eat: Marker2D = $MarkerMouthEat
+@onready
+var _anim_player: AnimationPlayer = $AnimationPlayer
 
 @export
 var _status_collection: StatusCollection
@@ -46,8 +49,6 @@ var _max_scale: Vector2 = Vector2(5.0, 5.0)
 var _energy_coefficient: float = 0.05
 @export
 var _hunger_coefficient: float = 0.25
-@export
-var _hunger_treshold: float = 0.5
 
 
 var _stat_health: StatusValue
@@ -77,8 +78,10 @@ func _ready() -> void:
 
 func _physics_process(_delta: float) -> void:
 	if _current_state != State.REST:
-		_calculate_feed_target()
+		if _current_state == State.HUNT:
+			_calculate_feed_target()
 		_update_navigation()
+		_handle_sprite_animation()
 
 
 func _setup() -> void:
@@ -200,6 +203,18 @@ func _flip_emotes(e_flip_v: bool, e_flip_h: bool) -> void:
 		e.flip_v = e_flip_v
 
 
+func _handle_sprite_animation() -> void:
+	match _current_state:
+		State.IDLE, State.HUNT:
+			if _anim_player.current_animation == SWIM and _anim_player.is_playing():
+				return
+			_anim_player.current_animation = SWIM
+			_anim_player.play()
+		State.REST:
+			if _anim_player.current_animation == SWIM and _anim_player.is_playing():
+				_anim_player.stop()
+
+
 func _calculate_resources_spent() -> void:
 	var energy_spent: float = _distance_traveled * _energy_coefficient
 	var hunger_gained: float = _distance_traveled * _hunger_coefficient
@@ -216,9 +231,6 @@ func _calculate_feed_target() -> void:
 	for f: Feed in feed:
 		if _current_feed_target == null or global_position.distance_to(f.global_position) < global_position.distance_to(_current_feed_target.global_position):
 			_current_feed_target = f
-
-	if _current_feed_target != null and _stat_hunger.get_stat_max_value() * _hunger_treshold >= _stat_hunger.get_stat_value():
-		_current_state = State.HUNT
 
 
 func get_mouth_position() -> Vector2:
@@ -239,11 +251,10 @@ func _on_sv_depleted(s: StatusValue.StatusType) -> void:
 		StatusValue.StatusType.HEALTH:
 			#print("fish %s died" % self._name)
 			pass
-		StatusValue.StatusType.HUNGER:
-			#print("fish %s is hungry" % self._name)
-			pass
 		StatusValue.StatusType.ENERGY:
 			_current_state = State.REST
+		StatusValue.StatusType.HUNGER:
+			_current_state = State.HUNT
 
 
 func _on_sv_maxed_out(s: StatusValue.StatusType) -> void:
@@ -251,10 +262,7 @@ func _on_sv_maxed_out(s: StatusValue.StatusType) -> void:
 		StatusValue.StatusType.HEALTH:
 			#print("fish %s at full health" % self._name)
 			pass
-		StatusValue.StatusType.HUNGER:
-			#print("fish %s is full" % self._name)
-			pass
-		StatusValue.StatusType.ENERGY:
+		StatusValue.StatusType.HUNGER, StatusValue.StatusType.ENERGY:
 			_current_state = State.IDLE
 
 func _on_nav_map_changed(_map: RID) -> void:
