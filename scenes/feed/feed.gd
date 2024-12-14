@@ -17,6 +17,7 @@ var _amplitude: float = 1.0
 var _freq: float = 1.0
 var _floating: bool = true
 var _picked_by: Fish = null
+var _reset_state = false
 
 var nutri_value: float = 5.0
 
@@ -29,16 +30,22 @@ func _ready() -> void:
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _physics_process(delta: float) -> void:
-	if not sleeping and _picked_by == null:
-		if linear_velocity.y <= 5 and not _floating:
-			freeze = true
-			sleeping = true
-			sleeping_state_changed.emit()
-		else:
-			_aquatic_move(delta)
-	elif _picked_by != null:
+	if _picked_by == null:
+		if !sleeping:
+			if absf(linear_velocity.y) <= 0.1 and absf(linear_velocity.x) <= 0.1 and !_floating:
+				freeze = true
+				sleeping = true
+				sleeping_state_changed.emit()
+			else:
+				_aquatic_move(delta)
+	else:
 		global_position = _picked_by.get_mouth_position()
 
+
+func _integrate_forces(state):
+	if _reset_state:
+		state.transform = Transform2D(0.0, _init_pos)
+		_reset_state = false
 
 func _aquatic_move(delta: float) -> void:
 	_time += delta * _freq
@@ -64,7 +71,7 @@ func check_pickable(checker: Fish) -> bool:
 
 
 func _on_sleeping_state_changed() -> void:
-	if sleeping:
+	if sleeping and !_floating:
 		_degrade_timer.start()
 	else:
 		_degrade_timer.stop()
@@ -80,3 +87,5 @@ func _on_animation_player_animation_finished(anim_name: StringName) -> void:
 
 func _on_float_timer_timeout() -> void:
 	_floating = false
+	_reset_state = true
+	can_sleep = true

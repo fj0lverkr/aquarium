@@ -52,6 +52,7 @@ collision_layer = 2
 collision_mask = 83
 mass = 0.1
 physics_material_override = SubResource("PhysicsMaterial_f7342")
+can_sleep = false
 linear_damp_mode = 1
 linear_damp = 2.5
 script = ExtResource("1_1gr8j")
