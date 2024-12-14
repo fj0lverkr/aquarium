@@ -47,6 +47,7 @@ func _integrate_forces(state: PhysicsDirectBodyState2D) -> void:
 		state.transform = Transform2D(0.0, _init_pos)
 		_reset_state = false
 
+
 func _aquatic_move(delta: float) -> void:
 	_time += delta * _freq
 
@@ -79,6 +80,7 @@ func _on_sleeping_state_changed() -> void:
 
 func _on_degrade_timer_timeout() -> void:
 	_fade_out()
+
 
 func _on_animation_player_animation_finished(anim_name: StringName) -> void:
 	if anim_name == ANIM_FADE_OUT:
