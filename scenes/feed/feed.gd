@@ -42,7 +42,7 @@ func _physics_process(delta: float) -> void:
 		global_position = _picked_by.get_mouth_position()
 
 
-func _integrate_forces(state):
+func _integrate_forces(state: PhysicsDirectBodyState2D) -> void:
 	if _reset_state:
 		state.transform = Transform2D(0.0, _init_pos)
 		_reset_state = false
