@@ -54,6 +54,7 @@ texture = ExtResource("2_kwcev")
 position = Vector2(551, 257)
 _status_collection = ExtResource("4_emj8k")
 _name = "Bib"
+_initial_scale = Vector2(2, 2)
 
 [node name="BlueTang2" parent="." index="3" instance=ExtResource("3_1fav4")]
 position = Vector2(219, 409)

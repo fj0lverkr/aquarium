@@ -40,13 +40,13 @@ var _name: String = "Unnamed fish"
 var _wait_min_max: Vector2 = Vector2(2.0, 10.0)
 @export
 var _swim_speed: float = 100.0
-## TODO: use this and a max scale to gradually have the fish grow into an adult.
+## TODO: use this and a max scale to gradually have the fish grow into an adult. Or use it to swim from foreground to background?
 @export
 var _initial_scale: Vector2 = Vector2(5.0, 5.0)
 @export
 var _max_scale: Vector2 = Vector2(5.0, 5.0)
 @export
-var _energy_coefficient: float = 0.05
+var _energy_coefficient: float = 0.01
 @export
 var _hunger_coefficient: float = 0.25
 
@@ -60,10 +60,11 @@ var _current_nav_point: Vector2
 var _prev_vel_x: float = 0.0
 var _distance_traveled: float = 0.0
 var _current_feed_target: Feed = null
+var _is_y_flipped: bool = false
 
 
 func _ready() -> void:
-	_initial_scale = scale
+	scale = _initial_scale
 	for e: Sprite2D in _emotes.values():
 		e.hide()
 	set_physics_process(false)
@@ -77,6 +78,7 @@ func _ready() -> void:
 		
 
 func _physics_process(_delta: float) -> void:
+	grow(0.001)
 	if _current_state != State.REST:
 		if _current_state == State.HUNT:
 			_calculate_feed_target()
@@ -153,13 +155,16 @@ func _get_fish_size() -> float:
 
 func _correct_orientation() -> void:
 	var new_scale: Vector2
+	var abs_scale: Vector2 = Vector2(absf(scale.x), absf(scale.y))
 
 	if velocity.x > 0.0 or (velocity.x == 0.0 and velocity.y == 0.0 and _prev_vel_x > 0.0):
-		new_scale = _initial_scale
+		new_scale = abs_scale
 		_flip_emotes(false, false)
+		_is_y_flipped = false
 	else:
-		new_scale = Vector2(_initial_scale.x, -_initial_scale.y)
+		new_scale = Vector2(abs_scale.x, -abs_scale.y)
 		_flip_emotes(false, true)
+		_is_y_flipped = true
 
 	if new_scale == scale:
 		return
@@ -233,6 +238,17 @@ func _calculate_feed_target() -> void:
 			_current_feed_target = f
 
 
+func _reset_state() -> void:
+	if _stat_energy.get_stat_value() <= 0 and _stat_hunger.get_stat_value() > 0:
+		_current_state = State.REST
+	elif _stat_hunger.get_stat_value() <= 0:
+		_current_state = State.HUNT
+	else:
+		_current_state = State.IDLE
+
+
+# PUBLIC FUNCTIONS
+
 func get_mouth_position() -> Vector2:
 	return _marker_mouth_eat.global_position
 
@@ -246,10 +262,20 @@ func get_debug_string() -> String:
 	return debug
 
 
+func grow(by: float) -> void:
+	var new_scale_y: float = scale.y - by if _is_y_flipped else scale.y + by
+	var new_scale: Vector2 = Vector2(scale.x + by, new_scale_y)
+	if new_scale <= _max_scale:
+		scale = new_scale
+	else:
+		scale = _max_scale
+
+
+# SIGNAL HANDLERS
+
 func _on_sv_depleted(s: StatusValue.StatusType) -> void:
 	match s:
 		StatusValue.StatusType.HEALTH:
-			#print("fish %s died" % self._name)
 			pass
 		StatusValue.StatusType.ENERGY:
 			_current_state = State.REST
@@ -260,7 +286,6 @@ func _on_sv_depleted(s: StatusValue.StatusType) -> void:
 func _on_sv_maxed_out(s: StatusValue.StatusType) -> void:
 	match s:
 		StatusValue.StatusType.HEALTH:
-			#print("fish %s at full health" % self._name)
 			pass
 		StatusValue.StatusType.HUNGER, StatusValue.StatusType.ENERGY:
 			_current_state = State.IDLE
@@ -299,6 +324,8 @@ func _on_mouth_area_body_entered(body: Node2D) -> void:
 		_stat_hunger.increase(f.nutri_value)
 		_stat_energy.increase(f.nutri_value * 0.5)
 		_stat_health.increase(f.nutri_value * 0.75)
+		if _current_state == State.HUNT:
+			_reset_state()
 
 
 func _on_feed_picked(feed: Feed) -> void:
