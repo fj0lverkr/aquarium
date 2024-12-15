@@ -46,7 +46,7 @@ var _initial_scale: Vector2 = Vector2(5.0, 5.0)
 @export
 var _max_scale: Vector2 = Vector2(5.0, 5.0)
 @export
-var _energy_coefficient: float = 0.01
+var _energy_coefficient: float = 1
 @export
 var _hunger_coefficient: float = 0.25
 
@@ -78,7 +78,6 @@ func _ready() -> void:
 		
 
 func _physics_process(_delta: float) -> void:
-	grow(0.001)
 	if _current_state != State.REST:
 		if _current_state == State.HUNT:
 			_calculate_feed_target()
@@ -175,7 +174,7 @@ func _rest() -> void:
 	_fish_look_at(Vector2.ZERO)
 	await Util.wait(ROTATION_TIME)
 	_play_emote(EmoteName.SLEEPING)
-	ObjectFactory.spawn_mouth_bubbles(_mbe_marker.global_position, _transient_children)
+	ObjectFactory.spawn_mouth_bubbles(_mbe_marker.global_position, scale, _transient_children)
 	var tween: Tween = create_tween().set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_BOUNCE)
 	tween.tween_property(self, "global_position:y", global_position.y - 1, 0.33)
 	tween.set_loops()

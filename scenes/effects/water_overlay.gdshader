@@ -9,7 +9,7 @@ uniform float wave_str = 2.0;
 void fragment() {
 	vec2 uv = UV + speed * TIME;
 	vec2 noise = texture(fast_noise, uv).rg;
-	
+
 	COLOR = vec4(color.r, color.g, color.b, 1) + vec4(noise.x, noise.y,1,1);
 	COLOR *= texture(screen_content, SCREEN_UV + noise * (wave_str / 100.0));
 }
