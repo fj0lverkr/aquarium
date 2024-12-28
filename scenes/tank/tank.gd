@@ -18,6 +18,7 @@ var _feed_parent: Node = $Feed
 var _sand_spawner: SandSpawner = $SandSpawner
 
 var _cursor_in_feed_area: bool = false
+var _cursor_over_object: bool = false
 
 
 # Called when the node enters the scene tree for the first time.
@@ -25,6 +26,8 @@ func _ready() -> void:
 	TankManager.set_current_tank(self)
 	_backdrop.set_deferred("size", _size)
 	_backdrop.texture = _bd_texture
+	SignalBus.on_mouse_over_object_changed.connect(_on_mouse_over_object_changed)
+
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -37,11 +40,18 @@ func get_random_point_in_tank() -> Vector2:
 	return NavigationServer2D.region_get_random_point(_nav_region.get_rid(), 1, false)
 
 
+func _set_sand_spawner()->void:
+	var should_enable:bool = false if (_cursor_over_object or _cursor_in_feed_area) else true
+	_sand_spawner.set_enabled(should_enable)
+
 func _on_feeder_area_mouse_exited() -> void:
 	_cursor_in_feed_area = false
-	_sand_spawner.set_enabled(true)
-
+	_set_sand_spawner()
 
 func _on_feeder_area_mouse_entered() -> void:
 	_cursor_in_feed_area = true
-	_sand_spawner.set_enabled(false)
+	_set_sand_spawner()
+
+func _on_mouse_over_object_changed(is_over:bool)->void:
+	_cursor_over_object = is_over
+	_set_sand_spawner()

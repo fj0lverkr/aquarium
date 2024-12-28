@@ -44,6 +44,7 @@ _data = {
 [node name="Fish" type="CharacterBody2D"]
 scale = Vector2(5, 5)
 collision_mask = 13
+input_pickable = true
 script = ExtResource("1_7qprw")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
@@ -84,6 +85,8 @@ libraries = {
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 
+[connection signal="mouse_entered" from="." to="." method="_on_mouse_entered"]
+[connection signal="mouse_exited" from="." to="." method="_on_mouse_exited"]
 [connection signal="navigation_finished" from="NavigationAgent2D" to="." method="_on_navigation_finished"]
 [connection signal="velocity_computed" from="NavigationAgent2D" to="." method="_on_velocity_computed"]
 [connection signal="body_entered" from="MouthArea" to="." method="_on_mouth_area_body_entered"]

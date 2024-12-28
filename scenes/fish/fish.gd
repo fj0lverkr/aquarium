@@ -61,6 +61,7 @@ var _prev_vel_x: float = 0.0
 var _distance_traveled: float = 0.0
 var _current_feed_target: Feed = null
 var _is_y_flipped: bool = false
+var _clickable:bool = false
 
 
 func _ready() -> void:
@@ -104,6 +105,12 @@ func _check_minimum_stats_present() -> void:
 	if not _stat_health or not _stat_hunger or not _stat_energy:
 		print("Entity is missing one or more required stats, freeing...")
 		queue_free()
+
+
+func _handle_input()->void:
+	if Input.is_action_just_pressed(Constants.IA_LMB) and _clickable:
+		SignalBus.on_fish_clicked.emit(self)
+
 
 
 func _update_navigation() -> void:
@@ -246,6 +253,11 @@ func _reset_state() -> void:
 		_current_state = State.IDLE
 
 
+func _set_clickable(is_clickable:bool) -> void:
+	_clickable = is_clickable
+	SignalBus.on_mouse_over_object_changed.emit(is_clickable)
+
+
 # PUBLIC FUNCTIONS
 
 func get_mouth_position() -> Vector2:
@@ -331,3 +343,11 @@ func _on_feed_picked(feed: Feed) -> void:
 	if _current_feed_target == feed:
 		_current_feed_target = null
 		_set_destination()
+
+
+func _on_mouse_entered() -> void:
+	_set_clickable(true)
+
+
+func _on_mouse_exited() -> void:
+	_set_clickable(false)
