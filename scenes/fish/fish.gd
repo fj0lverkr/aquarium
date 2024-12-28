@@ -2,6 +2,12 @@ class_name Fish
 extends CharacterBody2D
 
 ## Base class for Fish, all other Fish should inherit from this.
+##
+##TODO: change movement logic to adhere to the following:
+## - fish can swim to the back of the aquarium using the scale value to visualize this
+## - fish on different "depths" should not collide with nor avoid eachother, rather use z-index to fake them passing by eachother
+## - to get food, fish should swim to a feed item at the same "depth", changing "depth" if required
+## - the change in depth should be used in all calculations that currently only use the distance traveled
 
 enum State {IDLE, HUNT, REST, }
 enum EmoteName {SLEEPING, }
