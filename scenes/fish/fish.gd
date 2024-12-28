@@ -46,11 +46,6 @@ var _name: String = "Unnamed fish"
 var _wait_min_max: Vector2 = Vector2(2.0, 10.0)
 @export
 var _swim_speed: float = 100.0
-## TODO: use this and a max scale to gradually have the fish grow into an adult. Or use it to swim from foreground to background?
-@export
-var _initial_scale: Vector2 = Vector2(5.0, 5.0)
-@export
-var _max_scale: Vector2 = Vector2(5.0, 5.0)
 @export
 var _energy_coefficient: float = 1
 @export
@@ -61,17 +56,19 @@ var _stat_health: StatusValue
 var _stat_hunger: StatusValue
 var _stat_energy: StatusValue
 
+var _min_scale: Vector2
+var _max_scale: Vector2
 var _current_state: State = State.IDLE
 var _current_nav_point: Vector2
 var _prev_vel_x: float = 0.0
 var _distance_traveled: float = 0.0
 var _current_feed_target: Feed = null
 var _is_y_flipped: bool = false
-var _clickable:bool = false
+var _clickable: bool = false
 
 
 func _ready() -> void:
-	scale = _initial_scale
+	SignalBus.on_tank_changed.connect(_on_tank_changed)
 	for e: Sprite2D in _emotes.values():
 		e.hide()
 	set_physics_process(false)
@@ -107,16 +104,25 @@ func _setup() -> void:
 		queue_free()
 
 
+func _setup_object_scale() -> void:
+	var scales_by_tank: Dictionary = TankManager.get_object_scales()
+	var initial_scale: Vector2
+	_min_scale = scales_by_tank.min
+	_max_scale = scales_by_tank.max
+	initial_scale.x = randf_range(_min_scale.x, _max_scale.x)
+	initial_scale.y = initial_scale.x
+	scale = initial_scale
+
+
 func _check_minimum_stats_present() -> void:
 	if not _stat_health or not _stat_hunger or not _stat_energy:
 		print("Entity is missing one or more required stats, freeing...")
 		queue_free()
 
 
-func _handle_input()->void:
+func _handle_input() -> void:
 	if Input.is_action_just_pressed(Constants.IA_LMB) and _clickable:
 		SignalBus.on_fish_clicked.emit(self)
-
 
 
 func _update_navigation() -> void:
@@ -259,7 +265,7 @@ func _reset_state() -> void:
 		_current_state = State.IDLE
 
 
-func _set_clickable(is_clickable:bool) -> void:
+func _set_clickable(is_clickable: bool) -> void:
 	_clickable = is_clickable
 	SignalBus.on_mouse_over_object_changed.emit(is_clickable)
 
@@ -289,6 +295,10 @@ func grow(by: float) -> void:
 
 
 # SIGNAL HANDLERS
+
+func _on_tank_changed() -> void:
+	_setup_object_scale()
+
 
 func _on_sv_depleted(s: StatusValue.StatusType) -> void:
 	match s:

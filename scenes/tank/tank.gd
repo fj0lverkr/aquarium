@@ -6,6 +6,10 @@ extends Node2D
 @export
 var _size: Vector2
 @export
+var _objects_min_scale: float = 1.0
+@export
+var _objects_max_scale: float = 5.0
+@export
 var _bd_texture: Texture2D
 
 @onready
@@ -29,7 +33,6 @@ func _ready() -> void:
 	SignalBus.on_mouse_over_object_changed.connect(_on_mouse_over_object_changed)
 
 
-
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(_delta: float) -> void:
 	if Input.is_action_just_pressed("LeftClick") and _cursor_in_feed_area:
@@ -40,8 +43,12 @@ func get_random_point_in_tank() -> Vector2:
 	return NavigationServer2D.region_get_random_point(_nav_region.get_rid(), 1, false)
 
 
-func _set_sand_spawner()->void:
-	var should_enable:bool = false if (_cursor_over_object or _cursor_in_feed_area) else true
+func get_object_scales() -> Vector2:
+	return Vector2(_objects_min_scale, _objects_max_scale)
+
+
+func _set_sand_spawner() -> void:
+	var should_enable: bool = false if (_cursor_over_object or _cursor_in_feed_area) else true
 	_sand_spawner.set_enabled(should_enable)
 
 func _on_feeder_area_mouse_exited() -> void:
@@ -52,6 +59,6 @@ func _on_feeder_area_mouse_entered() -> void:
 	_cursor_in_feed_area = true
 	_set_sand_spawner()
 
-func _on_mouse_over_object_changed(is_over:bool)->void:
+func _on_mouse_over_object_changed(is_over: bool) -> void:
 	_cursor_over_object = is_over
 	_set_sand_spawner()
