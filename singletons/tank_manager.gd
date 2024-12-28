@@ -25,3 +25,7 @@ func get_object_scales() -> Dictionary:
         "min": Vector2(min_scale, min_scale),
         "max": Vector2(max_scale, max_scale)
     }
+
+
+func get_depth_layers() -> int:
+    return _current_tank.get_depth_layers()

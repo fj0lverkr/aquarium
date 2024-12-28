@@ -2,8 +2,8 @@ class_name Fish
 extends CharacterBody2D
 
 ## Base class for Fish, all other Fish should inherit from this.
-##
-##TODO: change movement logic to adhere to the following:
+
+## TODO: change movement logic to adhere to the following:
 ## - fish can swim to the back of the aquarium using the scale value to visualize this
 ## - fish on different "depths" should not collide with nor avoid eachother, rather use z-index to fake them passing by eachother
 ## - to get food, fish should swim to a feed item at the same "depth", changing "depth" if required
@@ -58,6 +58,8 @@ var _stat_energy: StatusValue
 
 var _min_scale: Vector2
 var _max_scale: Vector2
+var _tank_depth_layers: int
+var _current_depth_layer: int
 var _current_state: State = State.IDLE
 var _current_nav_point: Vector2
 var _prev_vel_x: float = 0.0
@@ -270,6 +272,10 @@ func _set_clickable(is_clickable: bool) -> void:
 	SignalBus.on_mouse_over_object_changed.emit(is_clickable)
 
 
+func _manage_depth() -> void:
+	# TODO in this method, set the z-index, scale and some other values depending on the current depth layer the fish is on
+	pass
+
 # PUBLIC FUNCTIONS
 
 func get_mouth_position() -> Vector2:
@@ -316,6 +322,7 @@ func _on_sv_maxed_out(s: StatusValue.StatusType) -> void:
 			pass
 		StatusValue.StatusType.HUNGER, StatusValue.StatusType.ENERGY:
 			_current_state = State.IDLE
+
 
 func _on_nav_map_changed(_map: RID) -> void:
 	if !is_physics_processing():

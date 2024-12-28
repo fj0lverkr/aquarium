@@ -10,6 +10,8 @@ var _objects_min_scale: float = 1.0
 @export
 var _objects_max_scale: float = 5.0
 @export
+var _depth_layers: int = 5
+@export
 var _bd_texture: Texture2D
 
 @onready
@@ -45,6 +47,10 @@ func get_random_point_in_tank() -> Vector2:
 
 func get_object_scales() -> Vector2:
 	return Vector2(_objects_min_scale, _objects_max_scale)
+
+
+func get_depth_layers() -> int:
+	return _depth_layers
 
 
 func _set_sand_spawner() -> void:
