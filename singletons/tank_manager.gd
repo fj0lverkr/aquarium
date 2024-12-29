@@ -19,8 +19,8 @@ func get_random_point_in_tank() -> Vector2:
 func get_object_scales() -> Dictionary:
     if !_current_tank:
         return {}
-    var min_scale: float = _current_tank.get_object_scales().y
-    var max_scale: float = _current_tank.get_object_scales().x
+    var min_scale: float = _current_tank.get_object_scales().x
+    var max_scale: float = _current_tank.get_object_scales().y
     return {
         "min": Vector2(min_scale, min_scale),
         "max": Vector2(max_scale, max_scale)
