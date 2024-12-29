@@ -56,10 +56,11 @@ var _stat_health: StatusValue
 var _stat_hunger: StatusValue
 var _stat_energy: StatusValue
 
+var _global_tween: Tween
 var _min_scale: Vector2
 var _max_scale: Vector2
 var _tank_depth_layers: int
-var _current_depth_layer: int
+var _current_depth_layer: int = -1
 var _current_state: State = State.IDLE
 var _current_nav_point: Vector2
 var _prev_vel_x: float = 0.0
@@ -70,6 +71,7 @@ var _clickable: bool = false
 
 
 func _ready() -> void:
+	_global_tween = create_tween()
 	SignalBus.on_tank_changed.connect(_on_tank_changed)
 	for e: Sprite2D in _emotes.values():
 		e.hide()
@@ -108,12 +110,11 @@ func _setup() -> void:
 
 func _setup_object_scale() -> void:
 	var scales_by_tank: Dictionary = TankManager.get_object_scales()
-	var initial_scale: Vector2
 	_min_scale = scales_by_tank.min
 	_max_scale = scales_by_tank.max
-	initial_scale.x = randf_range(_min_scale.x, _max_scale.x)
-	initial_scale.y = initial_scale.x
-	scale = initial_scale
+	_tank_depth_layers = TankManager.get_depth_layers()
+	var initial_dl: int = randi_range(1, _tank_depth_layers)
+	_change_depth(initial_dl)
 
 
 func _check_minimum_stats_present() -> void:
@@ -191,6 +192,17 @@ func _correct_orientation() -> void:
 	scale = new_scale
 
 
+func _get_corrected_orientation(target_scale: Vector2) -> Vector2:
+	var new_scale: Vector2
+	var abs_scale: Vector2 = Vector2(absf(target_scale.x), absf(target_scale.y))
+
+	if velocity.x > 0.0 or (velocity.x == 0.0 and velocity.y == 0.0 and _prev_vel_x > 0.0):
+		new_scale = abs_scale
+	else:
+		new_scale = Vector2(abs_scale.x, -abs_scale.y)
+	return new_scale
+
+
 func _rest() -> void:
 	_fish_look_at(Vector2.ZERO)
 	await Util.wait(ROTATION_TIME)
@@ -206,7 +218,7 @@ func _rest() -> void:
 		if c is MoutBubblesEmitter:
 			c.emitting = false
 	tween.kill()
-	_stat_energy.increase(1000)
+	_stat_energy.increase(1000) # TODO make this depend on the time rested
 	_stop_emote(EmoteName.SLEEPING)
 
 
@@ -272,14 +284,43 @@ func _set_clickable(is_clickable: bool) -> void:
 	SignalBus.on_mouse_over_object_changed.emit(is_clickable)
 
 
-func _manage_depth() -> void:
+func _change_depth(target_depth_layer: int) -> void:
 	# TODO in this method, set the z-index, scale and some other values depending on the current depth layer the fish is on
-	pass
+	if _current_depth_layer == target_depth_layer:
+		return
+
+	var target_scale: Vector2 = Vector2.ONE
+	var tween_time: float = 0.33
+
+	if target_depth_layer > _tank_depth_layers:
+		target_depth_layer = _tank_depth_layers
+	if target_depth_layer == 0:
+		target_depth_layer = 1
+
+	target_scale.x = _max_scale.x / target_depth_layer
+	target_scale.y = _max_scale.y / target_depth_layer
+	if target_scale.x < _min_scale.x or target_scale.y < _min_scale.y:
+		target_scale = _min_scale
+
+	target_scale = _get_corrected_orientation(target_scale)
+
+	if _current_depth_layer == -1:
+		scale = target_scale
+		return
+
+	tween_time *= absf(_current_depth_layer - target_depth_layer)
+	_global_tween.tween_property(self, "scale", target_scale, tween_time)
+	_current_depth_layer = target_depth_layer
+
 
 # PUBLIC FUNCTIONS
 
 func get_mouth_position() -> Vector2:
 	return _marker_mouth_eat.global_position
+
+
+func get_depth_layer() -> int:
+	return _current_depth_layer
 
 
 func get_debug_string() -> String:
@@ -289,15 +330,6 @@ func get_debug_string() -> String:
 	debug += "\n He %s/%s" % [_stat_health.get_stat_value(), _stat_health.get_stat_max_value()]
 
 	return debug
-
-
-func grow(by: float) -> void:
-	var new_scale_y: float = scale.y - by if _is_y_flipped else scale.y + by
-	var new_scale: Vector2 = Vector2(scale.x + by, new_scale_y)
-	if new_scale <= _max_scale:
-		scale = new_scale
-	else:
-		scale = _max_scale
 
 
 # SIGNAL HANDLERS
