@@ -306,11 +306,31 @@ func _change_depth(target_depth_layer: int) -> void:
 
 	if _current_depth_layer == -1:
 		scale = target_scale
-		return
+	else:
+		tween_time *= absf(_current_depth_layer - target_depth_layer)
+		_global_tween.tween_property(self, "scale", target_scale, tween_time)
 
-	tween_time *= absf(_current_depth_layer - target_depth_layer)
-	_global_tween.tween_property(self, "scale", target_scale, tween_time)
 	_current_depth_layer = target_depth_layer
+	_set_collision_layer()
+
+
+func _set_collision_layer() -> void:
+	for dl: int in Constants.PL_DEPTH_LAYER:
+		set_collision_layer_value(Constants.PL_DEPTH_LAYER[dl], dl == _current_depth_layer)
+		set_collision_mask_value(Constants.PL_DEPTH_LAYER[dl], dl == _current_depth_layer)
+
+
+func _is_body_on_same_depth_layer(body: Node) -> bool:
+	if not body.has_method("get_depth_layer"):
+		return false
+	return body.get_depth_layer() == _current_depth_layer
+
+
+func _is_area_on_same_depth_layer(area: Area2D) -> bool:
+	var parent: Node = area.get_parent()
+	if not parent.has_method("get_depth_layer"):
+		return false
+	return parent.get_depth_layer() == _current_depth_layer
 
 
 # PUBLIC FUNCTIONS
@@ -373,11 +393,12 @@ func _on_navigation_finished() -> void:
 func _on_avoidance_area_body_entered(body: Node2D) -> void:
 	if body == self:
 		return
-	_set_destination()
+	if _is_body_on_same_depth_layer(body):
+		_set_destination()
 
 
 func _on_avoidance_area_area_shape_entered(_area_rid: RID, area: Area2D, _area_shape_index: int, _local_shape_index: int) -> void:
-	if area.get_parent() is Fish and _current_state != State.REST:
+	if area.get_parent() is Fish and _current_state != State.REST and _is_area_on_same_depth_layer(area):
 		_nav_agent.navigation_finished.emit()
 
 

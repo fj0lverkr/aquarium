@@ -5,11 +5,11 @@ extends Node2D
 
 @export
 var _size: Vector2
-@export
+@export_range(1.0, 5.0)
 var _objects_min_scale: float = 1.0
-@export
+@export_range(1.0, 5.0)
 var _objects_max_scale: float = 5.0
-@export
+@export_range(1, 5)
 var _depth_layers: int = 5
 @export
 var _bd_texture: Texture2D

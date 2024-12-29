@@ -54,6 +54,11 @@ LeftClick={
 2d_physics/layer_5="Tankborders"
 2d_physics/layer_6="Utility"
 2d_physics/layer_7="Sand"
+2d_physics/layer_28="DL1"
+2d_physics/layer_29="DL2"
+2d_physics/layer_30="DL3"
+2d_physics/layer_31="DL4"
+2d_physics/layer_32="DL5"
 
 [rendering]
 
