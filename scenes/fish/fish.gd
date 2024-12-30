@@ -65,9 +65,8 @@ var _current_nav_point: Vector2
 var _prev_vel_x: float = 0.0
 var _distance_traveled: float = 0.0
 var _current_feed_target: Feed = null
-var _is_y_flipped: bool = false
 var _clickable: bool = false
-var _is_changing_depth = false
+var _scaling_to_depth: bool = false
 
 
 func _ready() -> void:
@@ -127,13 +126,19 @@ func _handle_input() -> void:
 		SignalBus.on_fish_clicked.emit(self)
 
 
+func _get_fish_size() -> float:
+	var s: Vector2 = _collider.shape.get_rect().size * scale
+	return s.x if s.x > s.y else s.y
+
+
 func _update_navigation() -> void:
 	var next_nav_point: Vector2 = _nav_agent.get_next_path_position()
 	velocity = global_position.direction_to(next_nav_point) * _swim_speed
 	if next_nav_point != _current_nav_point:
 		_fish_look_at(next_nav_point)
 		_current_nav_point = next_nav_point
-	_correct_orientation()
+	if !_scaling_to_depth:
+		_correct_orientation()
 	move_and_slide()
 
 
@@ -170,41 +175,22 @@ func _fish_look_at(where: Vector2) -> void:
 		look_at(direction)
 
 
-func _get_fish_size() -> float:
-	var s: Vector2 = _collider.shape.get_rect().size * scale
-	return s.x if s.x > s.y else s.y
-
-
-func _correct_orientation() -> void:
+func _correct_orientation(target_scale: Vector2 = Vector2.ZERO, only_return: bool = false) -> Vector2:
+	var from_scale: Vector2 = scale if target_scale == Vector2.ZERO else target_scale
 	var new_scale: Vector2
-	var abs_scale: Vector2 = Vector2(absf(scale.x), absf(scale.y))
+	var abs_scale: Vector2 = Vector2(absf(from_scale.x), absf(from_scale.y))
 
 	if velocity.x > 0.0 or (velocity.x == 0.0 and velocity.y == 0.0 and _prev_vel_x > 0.0):
 		new_scale = abs_scale
 		_flip_emotes(false, false)
-		_is_y_flipped = false
 	else:
 		new_scale = Vector2(abs_scale.x, -abs_scale.y)
 		_flip_emotes(false, true)
-		_is_y_flipped = true
 
-	if new_scale == scale or _is_changing_depth:
-		return
-	scale = new_scale
-
-
-func _get_corrected_orientation(target_scale: Vector2) -> Vector2:
-	var new_scale: Vector2
-	var abs_scale: Vector2 = Vector2(absf(target_scale.x), absf(target_scale.y))
-
-	if velocity.x > 0.0 or (velocity.x == 0.0 and velocity.y == 0.0 and _prev_vel_x > 0.0):
-		new_scale = abs_scale
-		_flip_emotes(false, false)
-		_is_y_flipped = false
-	else:
-		new_scale = Vector2(abs_scale.x, -abs_scale.y)
-		_flip_emotes(false, true)
-		_is_y_flipped = true
+	if new_scale == scale:
+		return Vector2.ZERO
+	if !only_return:
+		scale = new_scale
 	return new_scale
 
 
@@ -293,11 +279,10 @@ func _change_depth(target_depth_layer: int) -> void:
 	if _current_depth_layer == target_depth_layer:
 		return
 
-	var tween:Tween
+	var tween: Tween
 	var target_scale: Vector2 = Vector2.ONE
 	var tween_time: float = 0.66
 
-	_is_changing_depth = true
 	if target_depth_layer > _tank_depth_layers:
 		target_depth_layer = _tank_depth_layers
 	if target_depth_layer == 0:
@@ -308,7 +293,8 @@ func _change_depth(target_depth_layer: int) -> void:
 	if target_scale.x < _min_scale.x or target_scale.y < _min_scale.y:
 		target_scale = _min_scale
 
-	target_scale = _get_corrected_orientation(target_scale)
+	_scaling_to_depth = true
+	target_scale = _correct_orientation(target_scale, true)
 
 	if _current_depth_layer == -1:
 		scale = target_scale
@@ -321,7 +307,8 @@ func _change_depth(target_depth_layer: int) -> void:
 	_current_depth_layer = target_depth_layer
 	SignalBus.on_fish_depth_changed.emit(self)
 	_set_collision_layer()
-	_is_changing_depth = false
+	await get_tree().create_timer(tween_time).timeout
+	_scaling_to_depth = false
 
 
 func _set_collision_layer() -> void:
