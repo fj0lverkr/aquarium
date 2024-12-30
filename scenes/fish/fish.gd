@@ -56,7 +56,6 @@ var _stat_health: StatusValue
 var _stat_hunger: StatusValue
 var _stat_energy: StatusValue
 
-var _global_tween: Tween
 var _min_scale: Vector2
 var _max_scale: Vector2
 var _tank_depth_layers: int
@@ -68,10 +67,10 @@ var _distance_traveled: float = 0.0
 var _current_feed_target: Feed = null
 var _is_y_flipped: bool = false
 var _clickable: bool = false
+var _is_changing_depth = false
 
 
 func _ready() -> void:
-	_global_tween = create_tween()
 	SignalBus.on_tank_changed.connect(_on_tank_changed)
 	for e: Sprite2D in _emotes.values():
 		e.hide()
@@ -142,6 +141,8 @@ func _set_destination() -> void:
 	match _current_state:
 		State.IDLE:
 			_nav_agent.target_position = TankManager.get_random_point_in_tank()
+			var dl: int = randi_range(1, _tank_depth_layers)
+			_change_depth(dl)
 		State.HUNT:
 			if _current_feed_target != null:
 				_nav_agent.target_position = _current_feed_target.global_position
@@ -187,7 +188,7 @@ func _correct_orientation() -> void:
 		_flip_emotes(false, true)
 		_is_y_flipped = true
 
-	if new_scale == scale:
+	if new_scale == scale or _is_changing_depth:
 		return
 	scale = new_scale
 
@@ -198,8 +199,12 @@ func _get_corrected_orientation(target_scale: Vector2) -> Vector2:
 
 	if velocity.x > 0.0 or (velocity.x == 0.0 and velocity.y == 0.0 and _prev_vel_x > 0.0):
 		new_scale = abs_scale
+		_flip_emotes(false, false)
+		_is_y_flipped = false
 	else:
 		new_scale = Vector2(abs_scale.x, -abs_scale.y)
+		_flip_emotes(false, true)
+		_is_y_flipped = true
 	return new_scale
 
 
@@ -288,9 +293,11 @@ func _change_depth(target_depth_layer: int) -> void:
 	if _current_depth_layer == target_depth_layer:
 		return
 
+	var tween:Tween
 	var target_scale: Vector2 = Vector2.ONE
-	var tween_time: float = 0.33
+	var tween_time: float = 0.66
 
+	_is_changing_depth = true
 	if target_depth_layer > _tank_depth_layers:
 		target_depth_layer = _tank_depth_layers
 	if target_depth_layer == 0:
@@ -307,12 +314,14 @@ func _change_depth(target_depth_layer: int) -> void:
 		scale = target_scale
 		call_deferred("_defer_on_depth_changed")
 	else:
+		tween = create_tween()
 		tween_time *= absf(_current_depth_layer - target_depth_layer)
-		_global_tween.tween_property(self, "scale", target_scale, tween_time)
+		tween.tween_property(self, "scale", target_scale, tween_time)
 
 	_current_depth_layer = target_depth_layer
 	SignalBus.on_fish_depth_changed.emit(self)
 	_set_collision_layer()
+	_is_changing_depth = false
 
 
 func _set_collision_layer() -> void:
