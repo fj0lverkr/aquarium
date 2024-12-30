@@ -36,7 +36,6 @@ outlines = Array[PackedVector2Array]([PackedVector2Array(1139, 38, 1148, 640, -1
 
 [node name="TestTank" instance=ExtResource("1_mjk4k")]
 _size = Vector2(1152, 648)
-_objects_min_scale = 5.0
 _bd_texture = ExtResource("2_kwcev")
 
 [node name="Backdrop" parent="." index="1"]
@@ -51,12 +50,12 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 texture = ExtResource("2_kwcev")
 
-[node name="BlueTang" parent="." index="2" instance=ExtResource("3_1fav4")]
+[node name="BlueTang" parent="." index="2" groups=["fish"] instance=ExtResource("3_1fav4")]
 position = Vector2(551, 257)
 _status_collection = ExtResource("4_emj8k")
 _name = "Bib"
 
-[node name="BlueTang2" parent="." index="3" instance=ExtResource("3_1fav4")]
+[node name="BlueTang2" parent="." index="3" groups=["fish"] instance=ExtResource("3_1fav4")]
 position = Vector2(219, 409)
 _status_collection = SubResource("Resource_236w8")
 _name = "Bob"

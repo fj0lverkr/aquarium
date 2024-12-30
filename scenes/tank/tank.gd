@@ -33,6 +33,7 @@ func _ready() -> void:
 	_backdrop.set_deferred("size", _size)
 	_backdrop.texture = _bd_texture
 	SignalBus.on_mouse_over_object_changed.connect(_on_mouse_over_object_changed)
+	SignalBus.on_fish_depth_changed.connect(_on_fish_depth_changed)
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -57,14 +58,21 @@ func _set_sand_spawner() -> void:
 	var should_enable: bool = false if (_cursor_over_object or _cursor_in_feed_area) else true
 	_sand_spawner.set_enabled(should_enable)
 
+
 func _on_feeder_area_mouse_exited() -> void:
 	_cursor_in_feed_area = false
 	_set_sand_spawner()
+
 
 func _on_feeder_area_mouse_entered() -> void:
 	_cursor_in_feed_area = true
 	_set_sand_spawner()
 
+
 func _on_mouse_over_object_changed(is_over: bool) -> void:
 	_cursor_over_object = is_over
 	_set_sand_spawner()
+
+
+func _on_fish_depth_changed(f: Fish) -> void:
+	f.z_index = -100 * f.get_depth_layer()

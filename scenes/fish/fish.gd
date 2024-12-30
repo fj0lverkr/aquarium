@@ -285,7 +285,6 @@ func _set_clickable(is_clickable: bool) -> void:
 
 
 func _change_depth(target_depth_layer: int) -> void:
-	# TODO in this method, set the z-index, scale and some other values depending on the current depth layer the fish is on
 	if _current_depth_layer == target_depth_layer:
 		return
 
@@ -306,11 +305,13 @@ func _change_depth(target_depth_layer: int) -> void:
 
 	if _current_depth_layer == -1:
 		scale = target_scale
+		call_deferred("_defer_on_depth_changed")
 	else:
 		tween_time *= absf(_current_depth_layer - target_depth_layer)
 		_global_tween.tween_property(self, "scale", target_scale, tween_time)
 
 	_current_depth_layer = target_depth_layer
+	SignalBus.on_fish_depth_changed.emit(self)
 	_set_collision_layer()
 
 
@@ -331,6 +332,10 @@ func _is_area_on_same_depth_layer(area: Area2D) -> bool:
 	if not parent.has_method("get_depth_layer"):
 		return false
 	return parent.get_depth_layer() == _current_depth_layer
+
+
+func _defer_on_depth_changed() -> void:
+	SignalBus.on_fish_depth_changed.emit(self)
 
 
 # PUBLIC FUNCTIONS

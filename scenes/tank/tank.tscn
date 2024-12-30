@@ -15,6 +15,7 @@ script = ExtResource("1_i38ca")
 [node name="SandSpawner" parent="." instance=ExtResource("4_bughq")]
 
 [node name="Backdrop" type="TextureRect" parent="."]
+z_index = -4096
 mouse_filter = 2
 
 [node name="NavigationRegion2D" type="NavigationRegion2D" parent="."]

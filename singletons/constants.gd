@@ -2,6 +2,7 @@ extends Node
 
 const GRP_FEED: String = "feed"
 const GRP_SAND: String = "sand"
+const GRP_FISH: String = "fish"
 
 # INPUT ACTION NAMES
 const IA_LMB: String = "LeftClick"
