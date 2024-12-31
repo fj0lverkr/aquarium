@@ -16,6 +16,7 @@ const EMOTES: Dictionary = {EmoteName.SLEEPING: "sleeping", }
 const SWIM: String = "swim"
 
 const ROTATION_TIME: float = 0.4
+const DEPTH_TIME:float = 1.23
 
 @onready
 var _nav_agent: NavigationAgent2D = $NavigationAgent2D
@@ -33,6 +34,8 @@ var _emotes: Dictionary = {EmoteName.SLEEPING: $SleepEmote, }
 var _marker_mouth_eat: Marker2D = $MarkerMouthEat
 @onready
 var _anim_player: AnimationPlayer = $AnimationPlayer
+@onready
+var _sprite:Sprite2D = $Sprite2D
 
 @export
 var _status_collection: StatusCollection
@@ -283,7 +286,9 @@ func _change_depth(target_depth_layer: int) -> void:
 
 	var tween: Tween
 	var target_scale: Vector2 = Vector2.ONE
-	var tween_time: float = 0.66
+	var tween_time: float = DEPTH_TIME
+	var wait_time:float = randf_range(0.1, 0.15)
+	var target_modulate: Color = Constants.COL_DEPTH_MOD[target_depth_layer]
 
 	if target_depth_layer > _tank_depth_layers:
 		target_depth_layer = _tank_depth_layers
@@ -295,15 +300,18 @@ func _change_depth(target_depth_layer: int) -> void:
 	if target_scale.x < _min_scale.x or target_scale.y < _min_scale.y:
 		target_scale = _min_scale
 
+	await Util.wait(wait_time)
 	target_scale = _get_corrected_scale(target_scale)
 
 	if _current_depth_layer == -1:
 		scale = target_scale
+		_sprite.self_modulate = target_modulate
 		call_deferred("_defer_on_depth_changed")
 	else:
 		tween = create_tween()
 		tween_time *= absf(_current_depth_layer - target_depth_layer)
 		tween.tween_property(self, "scale", target_scale, tween_time)
+		tween.parallel().tween_property(_sprite, "self_modulate", target_modulate,tween_time)
 
 	_current_depth_layer = target_depth_layer
 	SignalBus.on_fish_depth_changed.emit(self)

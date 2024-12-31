@@ -36,6 +36,7 @@ outlines = Array[PackedVector2Array]([PackedVector2Array(1139, 38, 1148, 640, -1
 
 [node name="TestTank" instance=ExtResource("1_mjk4k")]
 _size = Vector2(1152, 648)
+_depth_layers = 3
 _bd_texture = ExtResource("2_kwcev")
 
 [node name="Backdrop" parent="." index="1"]
