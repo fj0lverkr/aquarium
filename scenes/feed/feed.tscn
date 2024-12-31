@@ -9,6 +9,7 @@ bounce = 0.25
 absorbent = true
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_fs7tv"]
+radius = 2.0
 
 [sub_resource type="Animation" id="Animation_7d6mo"]
 length = 0.001
@@ -49,7 +50,7 @@ _data = {
 
 [node name="Feed" type="RigidBody2D"]
 collision_layer = 2
-collision_mask = 83
+collision_mask = 80
 mass = 0.1
 physics_material_override = SubResource("PhysicsMaterial_f7342")
 can_sleep = false
@@ -58,7 +59,6 @@ linear_damp = 2.5
 script = ExtResource("1_1gr8j")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-scale = Vector2(5, 5)
 texture = ExtResource("1_8shal")
 hframes = 7
 

@@ -34,6 +34,7 @@ func _ready() -> void:
 	_backdrop.texture = _bd_texture
 	SignalBus.on_mouse_over_object_changed.connect(_on_mouse_over_object_changed)
 	SignalBus.on_fish_depth_changed.connect(_on_fish_depth_changed)
+	SignalBus.on_object_depth_changed.connect(_on_object_depth_changed)
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -76,3 +77,8 @@ func _on_mouse_over_object_changed(is_over: bool) -> void:
 
 func _on_fish_depth_changed(f: Fish) -> void:
 	f.z_index = -100 * f.get_depth_layer()
+
+
+func _on_object_depth_changed(o: Node2D) -> void:
+	if o.has_method("get_depth_layer"):
+		o.z_index = -100 * o.get_depth_layer()

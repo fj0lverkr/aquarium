@@ -14,7 +14,7 @@ const EMOTES: Dictionary = {EmoteName.SLEEPING: "sleeping", }
 const SWIM: String = "swim"
 
 const ROTATION_TIME: float = 0.4
-const DEPTH_TIME:float = 1.23
+const DEPTH_TIME: float = 1.23
 
 @onready
 var _nav_agent: NavigationAgent2D = $NavigationAgent2D
@@ -33,7 +33,7 @@ var _marker_mouth_eat: Marker2D = $MarkerMouthEat
 @onready
 var _anim_player: AnimationPlayer = $AnimationPlayer
 @onready
-var _sprite:Sprite2D = $Sprite2D
+var _sprite: Sprite2D = $Sprite2D
 
 @export
 var _status_collection: StatusCollection
@@ -156,7 +156,7 @@ func _set_destination() -> void:
 
 
 func _set_depth() -> void:
-	var roll:int = Util.dice_roll(6)
+	var roll: int = Util.dice_roll(6)
 	if roll < 5:
 		return
 	var travel_time = global_position.distance_to(_nav_agent.target_position) / _swim_speed
@@ -200,8 +200,8 @@ func _correct_orientation() -> void:
 	scale = new_scale
 
 
-func _get_corrected_scale(target:Vector2) -> Vector2:
-	var corrected_scale:Vector2 = Vector2.ZERO
+func _get_corrected_scale(target: Vector2) -> Vector2:
+	var corrected_scale: Vector2 = Vector2.ZERO
 	corrected_scale.x = target.x if scale.x >= 0 else -target.x
 	corrected_scale.y = target.y if scale.y >= 0 else -target.y
 	return corrected_scale
@@ -295,7 +295,7 @@ func _change_depth(target_depth_layer: int) -> void:
 	var tween: Tween
 	var target_scale: Vector2 = Vector2.ONE
 	var tween_time: float = DEPTH_TIME
-	var wait_time:float = randf_range(0.1, 0.15)
+	var wait_time: float = randf_range(0.1, 0.15)
 	var target_modulate: Color = Constants.COL_DEPTH_MOD[target_depth_layer]
 
 	if target_depth_layer > _tank_depth_layers:
@@ -319,17 +319,11 @@ func _change_depth(target_depth_layer: int) -> void:
 		tween = create_tween()
 		tween_time *= absf(_current_depth_layer - target_depth_layer)
 		tween.tween_property(self, "scale", target_scale, tween_time)
-		tween.parallel().tween_property(_sprite, "self_modulate", target_modulate,tween_time)
+		tween.parallel().tween_property(_sprite, "self_modulate", target_modulate, tween_time)
 
 	_current_depth_layer = target_depth_layer
 	SignalBus.on_fish_depth_changed.emit(self)
-	_set_collision_layer()
-
-
-func _set_collision_layer() -> void:
-	for dl: int in Constants.PL_DEPTH_LAYER:
-		set_collision_layer_value(Constants.PL_DEPTH_LAYER[dl], dl == _current_depth_layer)
-		set_collision_mask_value(Constants.PL_DEPTH_LAYER[dl], dl == _current_depth_layer)
+	Util.set_depth_collision_layer(self, _current_depth_layer)
 
 
 func _is_body_on_same_depth_layer(body: Node) -> bool:
