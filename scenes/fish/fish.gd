@@ -66,7 +66,6 @@ var _prev_vel_x: float = 0.0
 var _distance_traveled: float = 0.0
 var _current_feed_target: Feed = null
 var _clickable: bool = false
-var _scaling_to_depth: bool = false
 
 
 func _ready() -> void:
@@ -137,8 +136,7 @@ func _update_navigation() -> void:
 	if next_nav_point != _current_nav_point:
 		_fish_look_at(next_nav_point)
 		_current_nav_point = next_nav_point
-	if !_scaling_to_depth:
-		_correct_orientation()
+	_correct_orientation()
 	move_and_slide()
 
 
@@ -175,10 +173,9 @@ func _fish_look_at(where: Vector2) -> void:
 		look_at(direction)
 
 
-func _correct_orientation(target_scale: Vector2 = Vector2.ZERO, only_return: bool = false) -> Vector2:
-	var from_scale: Vector2 = scale if target_scale == Vector2.ZERO else target_scale
+func _correct_orientation() -> void:
 	var new_scale: Vector2
-	var abs_scale: Vector2 = Vector2(absf(from_scale.x), absf(from_scale.y))
+	var abs_scale: Vector2 = Vector2(absf(scale.x), absf(scale.y))
 
 	if velocity.x > 0.0 or (velocity.x == 0.0 and velocity.y == 0.0 and _prev_vel_x > 0.0):
 		new_scale = abs_scale
@@ -188,10 +185,15 @@ func _correct_orientation(target_scale: Vector2 = Vector2.ZERO, only_return: boo
 		_flip_emotes(false, true)
 
 	if new_scale == scale:
-		return Vector2.ZERO
-	if !only_return:
-		scale = new_scale
-	return new_scale
+		return
+	scale = new_scale
+
+
+func _get_corrected_scale(target:Vector2) -> Vector2:
+	var corrected_scale:Vector2 = Vector2.ZERO
+	corrected_scale.x = target.x if scale.x >= 0 else -target.x
+	corrected_scale.y = target.y if scale.y >= 0 else -target.y
+	return corrected_scale
 
 
 func _rest() -> void:
@@ -293,8 +295,7 @@ func _change_depth(target_depth_layer: int) -> void:
 	if target_scale.x < _min_scale.x or target_scale.y < _min_scale.y:
 		target_scale = _min_scale
 
-	_scaling_to_depth = true
-	target_scale = _correct_orientation(target_scale, true)
+	target_scale = _get_corrected_scale(target_scale)
 
 	if _current_depth_layer == -1:
 		scale = target_scale
@@ -307,8 +308,6 @@ func _change_depth(target_depth_layer: int) -> void:
 	_current_depth_layer = target_depth_layer
 	SignalBus.on_fish_depth_changed.emit(self)
 	_set_collision_layer()
-	await get_tree().create_timer(tween_time).timeout
-	_scaling_to_depth = false
 
 
 func _set_collision_layer() -> void:
