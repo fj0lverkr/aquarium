@@ -4,8 +4,6 @@ extends CharacterBody2D
 ## Base class for Fish, all other Fish should inherit from this.
 
 ## TODO: change movement logic to adhere to the following:
-## - fish can swim to the back of the aquarium using the scale value to visualize this
-## - fish on different "depths" should not collide with nor avoid eachother, rather use z-index to fake them passing by eachother
 ## - to get food, fish should swim to a feed item at the same "depth", changing "depth" if required
 ## - the change in depth should be used in all calculations that currently only use the distance traveled
 
@@ -147,8 +145,7 @@ func _set_destination() -> void:
 	match _current_state:
 		State.IDLE:
 			_nav_agent.target_position = TankManager.get_random_point_in_tank()
-			var dl: int = randi_range(1, _tank_depth_layers)
-			_change_depth(dl)
+			_set_depth()
 		State.HUNT:
 			if _current_feed_target != null:
 				_nav_agent.target_position = _current_feed_target.global_position
@@ -156,6 +153,17 @@ func _set_destination() -> void:
 				_current_state = State.IDLE
 				_set_destination()
 	_distance_traveled = global_position.distance_to(_nav_agent.target_position)
+
+
+func _set_depth() -> void:
+	var roll:int = Util.dice_roll(6)
+	if roll < 5:
+		return
+	var travel_time = global_position.distance_to(_nav_agent.target_position) / _swim_speed
+	var dl: int = randi_range(1, _tank_depth_layers)
+	var dif: int = abs(_current_depth_layer - dl)
+	if travel_time > DEPTH_TIME * dif or _current_depth_layer == -1:
+		_change_depth(dl)
 
 
 func _fish_look_at(where: Vector2) -> void:
