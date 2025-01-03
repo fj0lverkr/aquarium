@@ -81,6 +81,7 @@ func _ready() -> void:
 	else:
 		_setup()
 		NavigationServer2D.map_changed.connect(_on_nav_map_changed)
+		SignalBus.on_feed_spawned.connect(_on_feed_spawned)
 		SignalBus.on_feed_picked.connect(_on_feed_picked)
 		
 
@@ -145,9 +146,11 @@ func _set_destination() -> void:
 		State.HUNT:
 			if _current_feed_target != null:
 				_nav_agent.target_position = _current_feed_target.global_position
+				if _current_feed_target.get_depth_layer() != _current_depth_layer:
+					_change_depth(_current_feed_target.get_depth_layer())
 			else:
-				_current_state = State.IDLE
-				_set_destination()
+				_nav_agent.target_position = TankManager.get_random_point_in_tank()
+				_set_depth()
 	_distance_traveled = global_position.distance_to(_nav_agent.target_position)
 
 
@@ -261,13 +264,24 @@ func _calculate_resources_spent() -> void:
 
 func _calculate_feed_target() -> void:
 	var feed: Array = get_tree().get_nodes_in_group(Constants.GRP_FEED)
+
 	if feed.is_empty():
 		_current_feed_target = null
 		return
-	
-	for f: Feed in feed:
-		if _current_feed_target == null or global_position.distance_to(f.global_position) < global_position.distance_to(_current_feed_target.global_position):
-			_current_feed_target = f
+
+	var filtered_feed:Array = feed.filter(_filter_feed_by_dl)
+	if not filtered_feed.is_empty():
+		for f: Feed in filtered_feed:
+			if _current_feed_target == null or global_position.distance_to(f.global_position) < global_position.distance_to(_current_feed_target.global_position):
+				_current_feed_target = f
+	else:
+		for f: Feed in feed:
+			if _current_feed_target == null or global_position.distance_to(f.global_position) < global_position.distance_to(_current_feed_target.global_position):
+				_current_feed_target = f
+
+
+func _filter_feed_by_dl(f: Feed) -> bool:
+	return f.get_depth_layer() == _current_depth_layer
 
 
 func _reset_state() -> void:
@@ -421,6 +435,12 @@ func _on_mouth_area_body_entered(body: Node2D) -> void:
 		_stat_health.increase(f.nutri_value * 0.75)
 		if _current_state == State.HUNT:
 			_reset_state()
+
+
+func _on_feed_spawned() -> void:
+	if _current_state != State.HUNT:
+		return
+	_calculate_feed_target()
 
 
 func _on_feed_picked(feed: Feed) -> void:

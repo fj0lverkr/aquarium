@@ -33,6 +33,7 @@ var nutri_value: float = 5.0
 func _ready() -> void:
 	_float_timer.wait_time = randf_range(0.25, 10.0)
 	_float_timer.start()
+	SignalBus.on_feed_spawned.emit()
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.

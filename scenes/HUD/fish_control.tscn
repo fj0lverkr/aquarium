@@ -6,34 +6,36 @@
 
 [node name="FishControl" type="Control"]
 layout_mode = 3
-anchors_preset = 15
+anchors_preset = 10
 anchor_right = 1.0
-anchor_bottom = 1.0
+offset_bottom = 130.0
 grow_horizontal = 2
-grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
 mouse_filter = 2
 script = ExtResource("1_eceyg")
 
 [node name="ColorRect" type="ColorRect" parent="."]
 layout_mode = 1
-anchors_preset = 10
+anchors_preset = 15
 anchor_right = 1.0
-offset_bottom = 80.0
+anchor_bottom = 1.0
 grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
 color = Color(1, 1, 1, 0.196078)
-metadata/_edit_use_anchors_ = true
 
 [node name="MC" type="MarginContainer" parent="ColorRect"]
 layout_mode = 1
-anchors_preset = 10
+anchors_preset = 15
 anchor_right = 1.0
-offset_right = 98.0
-offset_bottom = 61.0
+anchor_bottom = 1.0
 grow_horizontal = 2
-theme_override_constants/margin_left = 5
-theme_override_constants/margin_top = 5
-theme_override_constants/margin_right = 5
-theme_override_constants/margin_bottom = 5
+grow_vertical = 2
+theme_override_constants/margin_left = 15
+theme_override_constants/margin_top = 15
+theme_override_constants/margin_right = 15
+theme_override_constants/margin_bottom = 15
 
 [node name="VB" type="VBoxContainer" parent="ColorRect/MC"]
 layout_mode = 2
@@ -43,10 +45,66 @@ size_flags_horizontal = 0
 layout_mode = 2
 text = "Fish Name"
 
-[node name="PBHealth" type="TextureProgressBar" parent="ColorRect/MC/VB"]
+[node name="HB" type="HBoxContainer" parent="ColorRect/MC/VB"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="VBLabels" type="VBoxContainer" parent="ColorRect/MC/VB/HB"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="LabelHealth" type="Label" parent="ColorRect/MC/VB/HB/VBLabels"]
+layout_mode = 2
+text = "Health"
+
+[node name="LabelHunger" type="Label" parent="ColorRect/MC/VB/HB/VBLabels"]
+layout_mode = 2
+text = "Hunger"
+
+[node name="LabelEnergy" type="Label" parent="ColorRect/MC/VB/HB/VBLabels"]
+layout_mode = 2
+text = "Energy"
+
+[node name="VBBars" type="VBoxContainer" parent="ColorRect/MC/VB/HB"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="PBHealth" type="TextureProgressBar" parent="ColorRect/MC/VB/HB/VBBars"]
 custom_minimum_size = Vector2(128, 24)
 layout_mode = 2
 value = 50.0
 nine_patch_stretch = true
 texture_under = ExtResource("2_18qhu")
 texture_progress = ExtResource("3_8m8ls")
+
+[node name="PBHunger" type="TextureProgressBar" parent="ColorRect/MC/VB/HB/VBBars"]
+custom_minimum_size = Vector2(128, 24)
+layout_mode = 2
+value = 50.0
+nine_patch_stretch = true
+texture_under = ExtResource("2_18qhu")
+texture_progress = ExtResource("3_8m8ls")
+
+[node name="PBEnergy" type="TextureProgressBar" parent="ColorRect/MC/VB/HB/VBBars"]
+custom_minimum_size = Vector2(128, 24)
+layout_mode = 2
+value = 50.0
+nine_patch_stretch = true
+texture_under = ExtResource("2_18qhu")
+texture_progress = ExtResource("3_8m8ls")
+
+[node name="VBValues" type="VBoxContainer" parent="ColorRect/MC/VB/HB"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="LabelHealthVal" type="Label" parent="ColorRect/MC/VB/HB/VBValues"]
+layout_mode = 2
+text = "100/200"
+
+[node name="LabelHungerVal" type="Label" parent="ColorRect/MC/VB/HB/VBValues"]
+layout_mode = 2
+text = "100/200"
+
+[node name="LabelEnergyVal" type="Label" parent="ColorRect/MC/VB/HB/VBValues"]
+layout_mode = 2
+text = "100/200"
