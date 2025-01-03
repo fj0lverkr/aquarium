@@ -82,7 +82,7 @@ func _setup_depth(dl: int) -> void:
 	_sprite.scale = target_scale
 	_collider.scale = target_scale
 	_sprite.self_modulate = Constants.COL_DEPTH_MOD[dl]
-	Util.set_depth_collision_layer(self, dl)
+	Util.set_depth_collision(self, dl)
 	SignalBus.on_object_depth_changed.emit(self)
 
 

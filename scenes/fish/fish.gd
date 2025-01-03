@@ -36,6 +36,8 @@ var _marker_mouth_eat: Marker2D = $MarkerMouthEat
 var _anim_player: AnimationPlayer = $AnimationPlayer
 @onready
 var _sprite: Sprite2D = $Sprite2D
+@onready
+var _mouth_area: Area2D = $MouthArea
 
 @export
 var _status_collection: StatusCollection
@@ -329,10 +331,11 @@ func _change_depth(target_depth_layer: int) -> void:
 		tween_time *= absf(_current_depth_layer - target_depth_layer)
 		tween.tween_property(self, "scale", target_scale, tween_time)
 		tween.parallel().tween_property(_sprite, "self_modulate", target_modulate, tween_time)
+		SignalBus.on_object_depth_changed.emit(self)
 
 	_current_depth_layer = target_depth_layer
-	SignalBus.on_object_depth_changed.emit(self)
-	Util.set_depth_collision_layer(self, _current_depth_layer)
+	Util.set_depth_collision(self, _current_depth_layer)
+	Util.set_depth_collision_mask(_mouth_area, _current_depth_layer)
 
 
 func _is_body_on_same_depth_layer(body: Node) -> bool:
