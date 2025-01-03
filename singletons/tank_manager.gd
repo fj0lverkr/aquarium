@@ -1,7 +1,7 @@
 extends Node
 
 var _current_tank: Tank
-
+var _cursor_over_object: Node2D = null
 
 func set_current_tank(t: Tank) -> void:
     _current_tank = t
@@ -29,3 +29,11 @@ func get_object_scales() -> Dictionary:
 
 func get_depth_layers() -> int:
     return _current_tank.get_depth_layers()
+
+
+func set_cursor_over_object(o:Node2D) -> void:
+    _cursor_over_object = o
+
+
+func get_cursor_over_object() -> Node2D:
+    return _cursor_over_object

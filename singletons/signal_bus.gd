@@ -1,7 +1,6 @@
 extends Node
 signal on_tank_changed
 signal on_feed_picked(feed: Feed)
-signal on_fish_clicked(fish: Fish)
-signal on_mouse_over_object_changed(is_over: bool)
-signal on_fish_depth_changed(f: Fish)
+signal on_object_clicked(o: Node2D)
+signal on_mouse_over_object_changed(o: Node2D)
 signal on_object_depth_changed(o: Node2D)

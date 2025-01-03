@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://bb1co66a5eg12"]
+[gd_scene load_steps=13 format=3 uid="uid://bb1co66a5eg12"]
 
 [ext_resource type="PackedScene" uid="uid://bihqfkk8gjp5b" path="res://scenes/tank/tank.tscn" id="1_mjk4k"]
 [ext_resource type="Texture2D" uid="uid://8ok658sjc7wy" path="res://assets/images/backgrounds/ocean.png" id="2_kwcev"]
@@ -6,6 +6,7 @@
 [ext_resource type="Resource" uid="uid://b0i207uk21vai" path="res://resources/bt_test_collection.tres" id="4_emj8k"]
 [ext_resource type="Script" path="res://resources/status_value.gd" id="5_mu25p"]
 [ext_resource type="Script" path="res://resources/status_values.gd" id="6_4h0qu"]
+[ext_resource type="PackedScene" uid="uid://cgoyab6urinc0" path="res://scenes/HUD/fish_control.tscn" id="7_0su32"]
 
 [sub_resource type="Resource" id="Resource_ct5cd"]
 script = ExtResource("5_mu25p")
@@ -39,7 +40,11 @@ _size = Vector2(1152, 648)
 _depth_layers = 3
 _bd_texture = ExtResource("2_kwcev")
 
-[node name="Backdrop" parent="." index="1"]
+[node name="TestCL" type="CanvasLayer" parent="." index="0"]
+
+[node name="FishControl" parent="TestCL" index="0" instance=ExtResource("7_0su32")]
+
+[node name="Backdrop" parent="." index="2"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -51,24 +56,24 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 texture = ExtResource("2_kwcev")
 
-[node name="BlueTang" parent="." index="2" groups=["fish"] instance=ExtResource("3_1fav4")]
+[node name="BlueTang" parent="." index="3" groups=["fish"] instance=ExtResource("3_1fav4")]
 position = Vector2(551, 257)
 _status_collection = ExtResource("4_emj8k")
 _name = "Bib"
 
-[node name="BlueTang2" parent="." index="3" groups=["fish"] instance=ExtResource("3_1fav4")]
+[node name="BlueTang2" parent="." index="4" groups=["fish"] instance=ExtResource("3_1fav4")]
 position = Vector2(219, 409)
 _status_collection = SubResource("Resource_236w8")
 _name = "Bob"
 
-[node name="NavigationRegion2D" parent="." index="4"]
+[node name="NavigationRegion2D" parent="." index="5"]
 navigation_polygon = SubResource("NavigationPolygon_uwjx0")
 
 [node name="CollisionShape2D" parent="FeederArea" index="0"]
 position = Vector2(582.5, 26.5)
 scale = Vector2(17.6, 1)
 
-[node name="WaterOverlay" parent="." index="9"]
+[node name="WaterOverlay" parent="." index="10"]
 position = Vector2(576, 309)
 scale = Vector2(1.5, 1.5)
 

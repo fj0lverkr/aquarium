@@ -16,6 +16,8 @@ const SWIM: String = "swim"
 const ROTATION_TIME: float = 0.4
 const DEPTH_TIME: float = 1.23
 
+const StatusType = StatusValue.StatusType
+
 @onready
 var _nav_agent: NavigationAgent2D = $NavigationAgent2D
 @onready
@@ -66,7 +68,6 @@ var _current_nav_point: Vector2
 var _prev_vel_x: float = 0.0
 var _distance_traveled: float = 0.0
 var _current_feed_target: Feed = null
-var _clickable: bool = false
 
 
 func _ready() -> void:
@@ -119,11 +120,6 @@ func _check_minimum_stats_present() -> void:
 	if not _stat_health or not _stat_hunger or not _stat_energy:
 		print("Entity is missing one or more required stats, freeing...")
 		queue_free()
-
-
-func _handle_input() -> void:
-	if Input.is_action_just_pressed(Constants.IA_LMB) and _clickable:
-		SignalBus.on_fish_clicked.emit(self)
 
 
 func _get_fish_size() -> float:
@@ -284,8 +280,7 @@ func _reset_state() -> void:
 
 
 func _set_clickable(is_clickable: bool) -> void:
-	_clickable = is_clickable
-	SignalBus.on_mouse_over_object_changed.emit(is_clickable)
+	SignalBus.on_mouse_over_object_changed.emit(self if is_clickable else null)
 
 
 func _change_depth(target_depth_layer: int) -> void:
@@ -322,7 +317,7 @@ func _change_depth(target_depth_layer: int) -> void:
 		tween.parallel().tween_property(_sprite, "self_modulate", target_modulate, tween_time)
 
 	_current_depth_layer = target_depth_layer
-	SignalBus.on_fish_depth_changed.emit(self)
+	SignalBus.on_object_depth_changed.emit(self)
 	Util.set_depth_collision_layer(self, _current_depth_layer)
 
 
@@ -340,7 +335,7 @@ func _is_area_on_same_depth_layer(area: Area2D) -> bool:
 
 
 func _defer_on_depth_changed() -> void:
-	SignalBus.on_fish_depth_changed.emit(self)
+	SignalBus.on_object_depth_changed.emit(self)
 
 
 # PUBLIC FUNCTIONS
@@ -353,13 +348,16 @@ func get_depth_layer() -> int:
 	return _current_depth_layer
 
 
-func get_debug_string() -> String:
-	var debug: String = _name
-	debug += "\n En %s/%s" % [_stat_energy.get_stat_value(), _stat_energy.get_stat_max_value()]
-	debug += "\n Hu %s/%s" % [_stat_hunger.get_stat_value(), _stat_hunger.get_stat_max_value()]
-	debug += "\n He %s/%s" % [_stat_health.get_stat_value(), _stat_health.get_stat_max_value()]
+func get_fish_name() -> String:
+	return _name
 
-	return debug
+
+func get_max_stat_value(s:StatusType) -> float:
+	return _status_collection.get_stat_by_type(s).get_stat_max_value()
+
+
+func get_current_stat_value(s:StatusType) -> float:
+	return _status_collection.get_stat_by_type(s).get_stat_value()
 
 
 # SIGNAL HANDLERS
