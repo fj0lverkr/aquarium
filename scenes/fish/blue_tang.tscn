@@ -9,7 +9,7 @@ radius = 7.0
 height = 24.0
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_sp8bo"]
-radius = 2.80713
+radius = 2.2
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_jmc7n"]
 radius = 10.4
@@ -55,6 +55,11 @@ _data = {
 
 [node name="BlueTang" instance=ExtResource("1_yyvfo")]
 script = ExtResource("2_b0ull")
+_name = "Unnamed fish"
+_wait_min_max = Vector2(2, 10)
+_swim_speed = 100.0
+_energy_coefficient = 1.0
+_hunger_coefficient = 0.25
 
 [node name="CollisionShape2D" parent="." index="0"]
 shape = SubResource("CapsuleShape2D_mpbkc")
@@ -70,10 +75,10 @@ position = Vector2(16.2, -2.8)
 position = Vector2(12.4, -1.6)
 
 [node name="MouthArea" parent="." index="5"]
-position = Vector2(0.4, 0)
+position = Vector2(11.2, -1.4)
 
 [node name="CollisionShape2D" parent="MouthArea" index="0"]
-position = Vector2(9, -1.6)
+position = Vector2(0.200002, -3.57628e-07)
 shape = SubResource("CircleShape2D_sp8bo")
 
 [node name="CollisionShape2D" parent="AvoidanceArea" index="0"]

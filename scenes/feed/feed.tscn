@@ -9,7 +9,7 @@ bounce = 0.25
 absorbent = true
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_fs7tv"]
-radius = 2.0
+radius = 3.0
 
 [sub_resource type="Animation" id="Animation_7d6mo"]
 length = 0.001
@@ -51,7 +51,7 @@ _data = {
 [node name="Feed" type="RigidBody2D"]
 collision_layer = 2
 collision_mask = 80
-mass = 0.1
+mass = 0.01
 physics_material_override = SubResource("PhysicsMaterial_f7342")
 can_sleep = false
 linear_damp_mode = 1

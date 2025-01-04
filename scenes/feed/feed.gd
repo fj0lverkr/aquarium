@@ -26,17 +26,15 @@ var _depth_layer: int = 1
 var _min_scale: Vector2
 var _max_scale: Vector2
 
-var nutri_value: float = 5.0
+var nutri_value: float = 50.0
 
 
-# Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	_float_timer.wait_time = randf_range(0.25, 10.0)
 	_float_timer.start()
 	SignalBus.on_feed_spawned.emit()
 
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
 func _physics_process(delta: float) -> void:
 	if _picked_by == null:
 		if !sleeping:
@@ -60,9 +58,9 @@ func _aquatic_move(delta: float) -> void:
 	_time += delta * _freq
 
 	if _floating:
-		set_position(_init_pos + Vector2(0, sin(_time) * _amplitude))
+		set_global_position(_init_pos + Vector2(0, sin(_time) * _amplitude))
 	else:
-		set_position(global_position + Vector2(sin(_time) * (_amplitude / 2), 0))
+		set_global_position(global_position + Vector2(sin(_time) * (_amplitude / 2), 0))
 
 
 func _fade_out() -> void:
@@ -86,17 +84,18 @@ func _setup_depth(dl: int) -> void:
 	SignalBus.on_object_depth_changed.emit(self)
 
 
-func check_pickable(checker: Fish) -> bool:
+#Public methods
+
+func check_pickable(checker: Fish = null) -> bool:
 	if _picked_by == null:
 		_picked_by = checker
-		SignalBus.on_feed_picked.emit(self)
-		_fade_out()
+		if checker != null:
+			SignalBus.on_feed_picked.emit(checker)
+			_fade_out()
 		return true
 	else:
 		return false
 
-
-#Public methods
 
 func setup(dl: int) -> void:
 	_setup_depth(dl)

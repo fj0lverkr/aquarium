@@ -31,7 +31,7 @@ script = ExtResource("6_4h0qu")
 _collection = Array[ExtResource("5_mu25p")]([SubResource("Resource_ct5cd"), SubResource("Resource_0fc76"), SubResource("Resource_fjkf0")])
 
 [sub_resource type="NavigationPolygon" id="NavigationPolygon_uwjx0"]
-vertices = PackedVector2Array(1137.84, 630.047, 8.90625, 635.938, 4.07813, 48, 1129.15, 48)
+vertices = PackedVector2Array(1137.84, 630.047, 8.90625, 635.938, 4.07812, 48, 1129.15, 48)
 polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3)])
 outlines = Array[PackedVector2Array]([PackedVector2Array(1139, 38, 1148, 640, -1, 646, -6, 38)])
 
@@ -67,6 +67,7 @@ _status_collection = SubResource("Resource_236w8")
 _name = "Bob"
 
 [node name="NavigationRegion2D" parent="." index="5"]
+position = Vector2(13, -39)
 navigation_polygon = SubResource("NavigationPolygon_uwjx0")
 
 [node name="CollisionShape2D" parent="FeederArea" index="0"]

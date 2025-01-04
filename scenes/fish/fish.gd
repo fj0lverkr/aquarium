@@ -85,7 +85,7 @@ func _ready() -> void:
 		NavigationServer2D.map_changed.connect(_on_nav_map_changed)
 		SignalBus.on_feed_spawned.connect(_on_feed_spawned)
 		SignalBus.on_feed_picked.connect(_on_feed_picked)
-		
+
 
 func _physics_process(_delta: float) -> void:
 	if _current_state != State.REST:
@@ -131,6 +131,12 @@ func _get_fish_size() -> float:
 
 
 func _update_navigation() -> void:
+	if _current_state == State.HUNT:
+		_calculate_feed_target()
+		if _current_feed_target != null:
+			_nav_agent.target_position = _current_feed_target.global_position
+			if _current_feed_target.get_depth_layer() != _current_depth_layer:
+				_change_depth(_current_feed_target.get_depth_layer())
 	var next_nav_point: Vector2 = _nav_agent.get_next_path_position()
 	velocity = global_position.direction_to(next_nav_point) * _swim_speed
 	if next_nav_point != _current_nav_point:
@@ -148,8 +154,6 @@ func _set_destination() -> void:
 		State.HUNT:
 			if _current_feed_target != null:
 				_nav_agent.target_position = _current_feed_target.global_position
-				if _current_feed_target.get_depth_layer() != _current_depth_layer:
-					_change_depth(_current_feed_target.get_depth_layer())
 			else:
 				_nav_agent.target_position = TankManager.get_random_point_in_tank()
 				_set_depth()
@@ -275,15 +279,24 @@ func _calculate_feed_target() -> void:
 	if not filtered_feed.is_empty():
 		for f: Feed in filtered_feed:
 			if _current_feed_target == null or global_position.distance_to(f.global_position) < global_position.distance_to(_current_feed_target.global_position):
-				_current_feed_target = f
+				if f.check_pickable():
+					_current_feed_target = f
 	else:
 		for f: Feed in feed:
 			if _current_feed_target == null or global_position.distance_to(f.global_position) < global_position.distance_to(_current_feed_target.global_position):
-				_current_feed_target = f
+				if f.check_pickable():
+					_current_feed_target = f
 
 
 func _filter_feed_by_dl(f: Feed) -> bool:
 	return f.get_depth_layer() == _current_depth_layer
+
+
+func _reset_feed_target() -> void:
+	if _current_state != State.HUNT:
+		return
+	_calculate_feed_target()
+	_set_destination()
 
 
 func _reset_state() -> void:
@@ -438,18 +451,19 @@ func _on_mouth_area_body_entered(body: Node2D) -> void:
 		_stat_health.increase(f.nutri_value * 0.75)
 		if _current_state == State.HUNT:
 			_reset_state()
+		if _current_feed_target == f:
+			_current_feed_target = null
+		_set_destination()
 
 
 func _on_feed_spawned() -> void:
-	if _current_state != State.HUNT:
+	_reset_feed_target()
+
+
+func _on_feed_picked(by: Fish) -> void:
+	if by == self:
 		return
-	_calculate_feed_target()
-
-
-func _on_feed_picked(feed: Feed) -> void:
-	if _current_feed_target == feed:
-		_current_feed_target = null
-		_set_destination()
+	_reset_feed_target()
 
 
 func _on_mouse_entered() -> void:
