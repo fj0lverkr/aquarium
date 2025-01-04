@@ -46,11 +46,6 @@ scale = Vector2(5, 5)
 collision_mask = 12
 input_pickable = true
 script = ExtResource("1_7qprw")
-_name = null
-_wait_min_max = null
-_swim_speed = null
-_energy_coefficient = null
-_hunger_coefficient = null
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(0, -3)

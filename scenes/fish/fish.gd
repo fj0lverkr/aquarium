@@ -85,6 +85,7 @@ func _ready() -> void:
 		NavigationServer2D.map_changed.connect(_on_nav_map_changed)
 		SignalBus.on_feed_spawned.connect(_on_feed_spawned)
 		SignalBus.on_feed_picked.connect(_on_feed_picked)
+		SignalBus.on_object_clicked.connect(_on_object_clicked)
 
 
 func _physics_process(_delta: float) -> void:
@@ -473,3 +474,10 @@ func _on_mouse_entered() -> void:
 
 func _on_mouse_exited() -> void:
 	_set_clickable(false)
+
+
+func _on_object_clicked(o: Node2D) -> void:
+	if o == self:
+		_sprite.material = Constants.MAT_SPRITE_OUTLINE
+	else:
+		_sprite.material = Constants.MAT_SPRITE_BASE
