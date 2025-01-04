@@ -135,8 +135,6 @@ func _update_navigation() -> void:
 		_calculate_feed_target()
 		if _current_feed_target != null:
 			_nav_agent.target_position = _current_feed_target.global_position
-			if _current_feed_target.get_depth_layer() != _current_depth_layer:
-				_change_depth(_current_feed_target.get_depth_layer())
 	var next_nav_point: Vector2 = _nav_agent.get_next_path_position()
 	velocity = global_position.direction_to(next_nav_point) * _swim_speed
 	if next_nav_point != _current_nav_point:
@@ -275,7 +273,7 @@ func _calculate_feed_target() -> void:
 		_current_feed_target = null
 		return
 
-	var filtered_feed:Array = feed.filter(_filter_feed_by_dl)
+	var filtered_feed: Array = feed.filter(_filter_feed_by_dl)
 	if not filtered_feed.is_empty():
 		for f: Feed in filtered_feed:
 			if _current_feed_target == null or global_position.distance_to(f.global_position) < global_position.distance_to(_current_feed_target.global_position):
@@ -286,6 +284,9 @@ func _calculate_feed_target() -> void:
 			if _current_feed_target == null or global_position.distance_to(f.global_position) < global_position.distance_to(_current_feed_target.global_position):
 				if f.check_pickable():
 					_current_feed_target = f
+
+	if _current_feed_target != null and _current_feed_target.get_depth_layer() != _current_depth_layer:
+		_change_depth(_current_feed_target.get_depth_layer())
 
 
 func _filter_feed_by_dl(f: Feed) -> bool:
@@ -382,11 +383,11 @@ func get_fish_name() -> String:
 	return _name
 
 
-func get_max_stat_value(s:StatusType) -> float:
+func get_max_stat_value(s: StatusType) -> float:
 	return _status_collection.get_stat_by_type(s).get_stat_max_value()
 
 
-func get_current_stat_value(s:StatusType) -> float:
+func get_current_stat_value(s: StatusType) -> float:
 	return _status_collection.get_stat_by_type(s).get_stat_value()
 
 

@@ -14,7 +14,7 @@ var _float_timer: Timer = $FloatTimer
 @onready
 var _anim_player: AnimationPlayer = $AnimationPlayer
 @onready
-var _init_pos = get_position()
+var _init_pos = get_global_position()
 
 var _time: float = 0.0
 var _amplitude: float = 1.0
@@ -90,6 +90,7 @@ func check_pickable(checker: Fish = null) -> bool:
 	if _picked_by == null:
 		_picked_by = checker
 		if checker != null:
+			_collider.set_deferred("disabled", true)
 			SignalBus.on_feed_picked.emit(checker)
 			_fade_out()
 		return true
