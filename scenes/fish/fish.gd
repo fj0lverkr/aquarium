@@ -38,6 +38,8 @@ var _anim_player: AnimationPlayer = $AnimationPlayer
 var _sprite: Sprite2D = $Sprite2D
 @onready
 var _mouth_area: Area2D = $MouthArea
+@onready
+var _debug_label:Label = $DebugLabel
 
 @export
 var _status_collection: StatusCollection
@@ -55,6 +57,8 @@ var _swim_speed: float = 100.0
 var _energy_coefficient: float = 1
 @export
 var _hunger_coefficient: float = 0.25
+@export
+var _debug: bool = false
 
 
 var _stat_health: StatusValue
@@ -73,6 +77,7 @@ var _current_feed_target: Feed = null
 
 
 func _ready() -> void:
+	_debug_label.visible = _debug
 	SignalBus.on_tank_changed.connect(_on_tank_changed)
 	for e: Sprite2D in _emotes.values():
 		e.hide()
@@ -94,6 +99,9 @@ func _physics_process(_delta: float) -> void:
 			_calculate_feed_target()
 		_update_navigation()
 		_handle_sprite_animation()
+
+	if _debug:
+		_set_debug_label()
 
 
 func _setup() -> void:
@@ -195,9 +203,13 @@ func _correct_orientation() -> void:
 	if velocity.x > 0.0 or (velocity.x == 0.0 and velocity.y == 0.0 and _prev_vel_x > 0.0):
 		new_scale = abs_scale
 		_flip_emotes(false, false)
+		if _debug:
+			_flip_debug_label(false)
 	else:
 		new_scale = Vector2(abs_scale.x, -abs_scale.y)
 		_flip_emotes(false, true)
+		if _debug:
+			_flip_debug_label(true)
 
 	if new_scale == scale:
 		return
@@ -248,6 +260,13 @@ func _flip_emotes(e_flip_v: bool, e_flip_h: bool) -> void:
 		e.flip_v = e_flip_v
 
 
+func _flip_debug_label(flip: bool) -> void:
+	var half_label = _debug_label.size.x / 2
+	_debug_label.position.x = 0
+	_debug_label.scale.x = -1 if flip else 1
+	_debug_label.position.x += half_label if flip else -half_label
+
+
 func _handle_sprite_animation() -> void:
 	match _current_state:
 		State.IDLE, State.HUNT:
@@ -284,7 +303,11 @@ func _calculate_feed_target() -> void:
 		for f: Feed in feed:
 			if _current_feed_target == null or global_position.distance_to(f.global_position) < global_position.distance_to(_current_feed_target.global_position):
 				if f.check_pickable():
-					_current_feed_target = f
+					var travel_time = global_position.distance_to(_nav_agent.target_position) / _swim_speed
+					var dl: int = f.get_depth_layer()
+					var dif: int = abs(_current_depth_layer - dl)
+					if travel_time > DEPTH_TIME * dif:
+						_current_feed_target = f
 
 	if _current_feed_target != null and _current_feed_target.get_depth_layer() != _current_depth_layer:
 		_change_depth(_current_feed_target.get_depth_layer())
@@ -481,3 +504,11 @@ func _on_object_clicked(o: Node2D) -> void:
 		_sprite.material = Constants.MAT_SPRITE_OUTLINE
 	else:
 		_sprite.material = Constants.MAT_SPRITE_BASE
+
+
+# DEBUG
+
+func _set_debug_label() -> void:
+	var z_in_tank:int = TankManager.get_current_tank().get_object_z_index(self)
+	var debug_string: String = "DL: %s, Z: %s" % [_current_depth_layer, z_in_tank]
+	_debug_label.text = debug_string

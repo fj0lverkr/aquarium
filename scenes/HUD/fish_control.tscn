@@ -60,7 +60,7 @@ text = "Health"
 
 [node name="LabelHunger" type="Label" parent="ColorRect/MC/VB/HB/VBLabels"]
 layout_mode = 2
-text = "Hunger"
+text = "Fullness"
 
 [node name="LabelEnergy" type="Label" parent="ColorRect/MC/VB/HB/VBLabels"]
 layout_mode = 2

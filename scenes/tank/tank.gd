@@ -26,7 +26,8 @@ var _sand_spawner: SandSpawner = $SandSpawner
 var _cursor_in_feed_area: bool = false
 
 
-# Called when the node enters the scene tree for the first time.
+# Private and override functions
+
 func _ready() -> void:
 	TankManager.set_current_tank(self)
 	_backdrop.set_deferred("size", _size)
@@ -35,7 +36,6 @@ func _ready() -> void:
 	SignalBus.on_object_depth_changed.connect(_on_object_depth_changed)
 
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(_delta: float) -> void:
 	_handle_input()
 
@@ -47,6 +47,14 @@ func _handle_input() -> void:
 		if _cursor_in_feed_area:
 			ObjectFactory.spawn_feed(get_global_mouse_position(), _feed_parent)
 
+
+func _set_sand_spawner() -> void:
+	var coo:Node2D = TankManager.get_cursor_over_object()
+	var should_enable: bool = false if (coo != null or _cursor_in_feed_area) else true
+	_sand_spawner.set_enabled(should_enable)
+
+
+# Public methods
 
 func get_random_point_in_tank() -> Vector2:
 	return NavigationServer2D.region_get_random_point(_nav_region.get_rid(), 1, false)
@@ -60,11 +68,11 @@ func get_depth_layers() -> int:
 	return _depth_layers
 
 
-func _set_sand_spawner() -> void:
-	var coo:Node2D = TankManager.get_cursor_over_object()
-	var should_enable: bool = false if (coo != null or _cursor_in_feed_area) else true
-	_sand_spawner.set_enabled(should_enable)
+func get_object_z_index(o: Node2D) -> int:
+	return o.z_index
 
+
+# Signal handlers
 
 func _on_feeder_area_mouse_exited() -> void:
 	_cursor_in_feed_area = false

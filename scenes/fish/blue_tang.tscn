@@ -12,7 +12,7 @@ height = 24.0
 radius = 2.2
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_jmc7n"]
-radius = 10.4
+radius = 11.4017
 
 [sub_resource type="Animation" id="Animation_gsisl"]
 length = 0.001
@@ -55,11 +55,7 @@ _data = {
 
 [node name="BlueTang" instance=ExtResource("1_yyvfo")]
 script = ExtResource("2_b0ull")
-_name = "Unnamed fish"
-_wait_min_max = Vector2(2, 10)
-_swim_speed = 100.0
-_energy_coefficient = 1.0
-_hunger_coefficient = 0.25
+_debug = true
 
 [node name="CollisionShape2D" parent="." index="0"]
 shape = SubResource("CapsuleShape2D_mpbkc")
@@ -82,7 +78,7 @@ position = Vector2(0.200002, -3.57628e-07)
 shape = SubResource("CircleShape2D_sp8bo")
 
 [node name="CollisionShape2D" parent="AvoidanceArea" index="0"]
-position = Vector2(9.60001, -3)
+position = Vector2(10.4, -3)
 shape = SubResource("CircleShape2D_jmc7n")
 
 [node name="SleepEmote" parent="." index="8"]
@@ -93,3 +89,9 @@ scale = Vector2(0.75, 0.75)
 libraries = {
 "": SubResource("AnimationLibrary_ijsa1")
 }
+
+[node name="DebugLabel" parent="." index="11"]
+offset_left = -33.4
+offset_top = -23.8
+offset_right = 33.6
+offset_bottom = -11.8
