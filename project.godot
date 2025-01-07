@@ -61,6 +61,10 @@ LeftClick={
 2d_physics/layer_31="DL4"
 2d_physics/layer_32="DL5"
 
+[physics]
+
+2d/physics_engine="Rapier2D"
+
 [rendering]
 
 textures/canvas_textures/default_texture_filter=0
