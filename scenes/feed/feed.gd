@@ -25,6 +25,7 @@ var _reset_state: bool = false
 var _depth_layer: int = 1
 var _min_scale: Vector2
 var _max_scale: Vector2
+var _aquatic_move_stopped: bool = false
 
 var nutri_value: float = 50.0
 
@@ -37,13 +38,7 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	if _picked_by == null:
-		if !sleeping:
-			if absf(linear_velocity.y) <= 0.1 and absf(linear_velocity.x) <= 0.1 and !_floating:
-				freeze = true
-				sleeping = true
-				sleeping_state_changed.emit()
-			else:
-				_aquatic_move(delta)
+		_aquatic_move(delta)
 	else:
 		global_position = _picked_by.get_mouth_position()
 
@@ -56,11 +51,11 @@ func _integrate_forces(state: PhysicsDirectBodyState2D) -> void:
 
 func _aquatic_move(delta: float) -> void:
 	_time += delta * _freq
-
-	if _floating:
-		set_global_position(_init_pos + Vector2(0, sin(_time) * _amplitude))
-	else:
-		set_global_position(global_position + Vector2(sin(_time) * (_amplitude / 2), 0))
+	if !_aquatic_move_stopped:
+		if _floating:
+			set_global_position(_init_pos + Vector2(0, sin(_time) * _amplitude))
+		else:
+			set_global_position(global_position + Vector2(sin(_time) * (_amplitude / 2), 0))
 
 
 func _fade_out() -> void:
@@ -108,13 +103,6 @@ func get_depth_layer() -> int:
 
 # Signal handlers
 
-func _on_sleeping_state_changed() -> void:
-	if sleeping and !_floating:
-		_degrade_timer.start()
-	else:
-		_degrade_timer.stop()
-
-
 func _on_degrade_timer_timeout() -> void:
 	_fade_out()
 
@@ -128,3 +116,9 @@ func _on_float_timer_timeout() -> void:
 	_floating = false
 	_reset_state = true
 	can_sleep = true
+
+
+func _on_body_shape_entered(_body_rid:RID, body:Node, _body_shape_index:int, _local_shape_index:int) -> void:
+	if body is Sand or body is TankBottom:
+		_aquatic_move_stopped = true
+		_degrade_timer.start()
