@@ -363,15 +363,14 @@ func _change_depth(target_depth_layer: int) -> void:
 	if _current_depth_layer == -1:
 		scale = target_scale
 		_sprite.self_modulate = target_modulate
-		call_deferred("_defer_on_depth_changed")
 	else:
 		tween = create_tween()
 		tween_time *= absf(_current_depth_layer - target_depth_layer)
 		tween.tween_property(self, "scale", target_scale, tween_time)
 		tween.parallel().tween_property(_sprite, "self_modulate", target_modulate, tween_time)
-		SignalBus.on_object_depth_changed.emit(self)
 
 	_current_depth_layer = target_depth_layer
+	call_deferred("_defer_on_depth_changed")
 	Util.set_depth_collision(self, _current_depth_layer)
 	Util.set_depth_collision_mask(_mouth_area, _current_depth_layer)
 
