@@ -4,7 +4,7 @@ extends Node2D
 const SAND: PackedScene = preload("res://scenes/effects/sand.tscn")
 
 @export
-var _max_sand: int = 1000
+var _max_sand: int = 2500
 
 var _sand_parent: Node
 var _enabled: bool = true # TODO: make this value depend on a game state indicating the player is in sand placement mode.
