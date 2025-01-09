@@ -4,7 +4,7 @@ extends Node2D
 const SAND: PackedScene = preload("res://scenes/effects/sand.tscn")
 
 @export
-var _max_sand: int = 2500
+var _max_sand: int = 1500
 
 var _sand_parent: Node
 var _enabled: bool = true # TODO: make this value depend on a game state indicating the player is in sand placement mode.
@@ -15,7 +15,7 @@ func _ready() -> void:
     _sand_parent = get_tree().get_first_node_in_group(Constants.GRP_SAND)
 
 
-func _physics_process(_delta: float) -> void:
+func _process(_delta: float) -> void:
     global_position = get_global_mouse_position()
     if Input.is_action_pressed("LeftClick") and _enabled:
         _spawn_sand()
