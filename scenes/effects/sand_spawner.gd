@@ -24,7 +24,7 @@ func _process(_delta: float) -> void:
 func _spawn_sand() -> void:
     var s: Sand = SAND.instantiate()
     s.global_position = global_position
-    _sand_parent.add_child(s)
+    _sand_parent.add_child.call_deferred(s)
     _sand_array.append(s)
     _cull_sand()
 
