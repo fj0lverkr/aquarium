@@ -19,6 +19,7 @@ collision_layer = 64
 collision_mask = 95
 mass = 0.001
 physics_material_override = SubResource("PhysicsMaterial_ajg61")
+freeze_mode = 1
 linear_damp_mode = 1
 linear_damp = 2.5
 script = ExtResource("1_aj7xp")

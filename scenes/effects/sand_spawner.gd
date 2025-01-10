@@ -19,6 +19,9 @@ func _process(_delta: float) -> void:
     global_position = get_global_mouse_position()
     if Input.is_action_pressed("LeftClick") and _enabled:
         _spawn_sand()
+    if Input.is_action_just_released("LeftClick"):
+        await Util.wait(5)
+        call_deferred("_print_sand")
 
 
 func _spawn_sand() -> void:
@@ -26,7 +29,7 @@ func _spawn_sand() -> void:
     s.global_position = global_position
     _sand_parent.add_child.call_deferred(s)
     _sand_array.append(s)
-    _cull_sand()
+    #_cull_sand()
 
 
 func _cull_sand() -> void:
@@ -36,6 +39,11 @@ func _cull_sand() -> void:
             var s: Sand = _sand_array.pop_at(0)
             s.queue_free()
 
+
+func _print_sand():
+    var sleeping_sand: Array[Sand] = _sand_array.filter(func(s: Sand) -> bool: return s.sleeping)
+    var frozen_sand: Array[Sand] = _sand_array.filter(func(s: Sand) -> bool: return s.freeze)
+    print("%s sleeping, %s frozen, %s total" % [sleeping_sand.size(), frozen_sand.size(), _sand_array.size()])
 
 func set_enabled(e: bool) -> void:
     _enabled = e
