@@ -2,7 +2,7 @@ class_name SandSpawner
 extends Node2D
 
 @export
-var _max_sand: int = 1500
+var _max_sand: int = 500
 @export
 var _texture: Texture2D = preload("res://assets/images/effects/sand_8_8.png")
 
@@ -13,20 +13,21 @@ var _image: Image
 var _body: RID
 var _shape: RID
 
-var _sand_parent: Node
 var _enabled: bool = true # TODO: make this value depend on a game state indicating the player is in sand placement mode.
 var _sand_array: Array[RID]
+var _sand_body_array: Array[RID]
 var _spawn_position: Vector2 = Vector2.ZERO
 
 func _ready() -> void:
 	_sand_array = []
-	_sand_parent = get_tree().get_first_node_in_group(Constants.GRP_SAND)
+	_sand_body_array = []
 
 
 func _physics_process(_delta: float) -> void:
 	if Input.is_action_pressed("LeftClick") and _enabled:
 		_spawn_position = get_global_mouse_position()
 		_spawn_sand()
+		_cull_sand()
 
 
 func _spawn_sand() -> void:
@@ -45,6 +46,7 @@ func _setup_rendering() -> void:
 
 func _setup_physics() -> void:
 	_body = PhysicsServer2D.body_create()
+	_sand_body_array.append(_body)
 	PhysicsServer2D.body_set_mode(_body, PhysicsServer2D.BODY_MODE_RIGID)
 
 	_shape = PhysicsServer2D.circle_shape_create()
@@ -58,7 +60,31 @@ func _setup_physics() -> void:
 
 
 func _body_moved(state: PhysicsDirectBodyState2D, index: int) -> void:
-	RenderingServer.canvas_item_set_transform(_sand_array[index], state.transform)
+	if index < _sand_array.size() -1:
+		RenderingServer.canvas_item_set_transform(_sand_array[index], state.transform)
+
+
+func _cull_sand() -> void:
+	if _sand_array.size() > _max_sand:
+		_remove_at()
+
+
+
+func _remove_at(index:int = -1) -> void:
+	var ci: RID
+	var b: RID
+	if index <= 0:
+		index = 0
+	else:
+		ci = _sand_array[index]
+		b = _sand_body_array[index]
+
+	#RenderingServer.canvas_item_clear(ci)
+	RenderingServer.free_rid(ci)
+	PhysicsServer2D.free_rid(b)
+
+	_sand_array.remove_at(index)
+	_sand_body_array.remove_at(index)
 
 
 func set_enabled(e: bool) -> void:

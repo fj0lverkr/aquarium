@@ -119,6 +119,6 @@ func _on_float_timer_timeout() -> void:
 
 
 func _on_body_shape_entered(_body_rid:RID, body:Node, _body_shape_index:int, _local_shape_index:int) -> void:
-	if body is Sand or body is TankBottom:
+	if body is TankBottom:
 		_aquatic_move_stopped = true
 		_degrade_timer.start()
