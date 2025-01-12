@@ -1,7 +1,14 @@
 class_name PebbleSpawner
 extends Node2D
 
+### TODO ###
+# Spawn sand in depth layers, add collision masks accordingly
+# Adjust z-index accordingly
+# Adjust scaling accordingly
+# adjust shading accordinly
 
+
+# Small inner class to store pebble data
 class PebbleData:
 	var body_rid: RID
 	var current_position: Vector2
@@ -62,16 +69,28 @@ func _spawn_pebbles() -> void:
 
 
 func _setup_physics() -> void:
+	# Create body
 	_body = PhysicsServer2D.body_create()
 	PhysicsServer2D.body_set_mode(_body, PhysicsServer2D.BODY_MODE_RIGID)
 
+	# Create shape and add to body
 	_shape = PhysicsServer2D.circle_shape_create()
 	PhysicsServer2D.shape_set_data(_shape, 4)
 	PhysicsServer2D.body_add_shape(_body, _shape)
+
+	# Add body to worldspace
 	PhysicsServer2D.body_set_space(_body, get_world_2d().space)
 	PhysicsServer2D.body_set_state(_body, PhysicsServer2D.BODY_STATE_TRANSFORM, Transform2D(0, _spawn_position))
+
+	# Configure body
 	PhysicsServer2D.body_set_collision_layer(_body, 64) # layer 7
 	PhysicsServer2D.body_set_collision_mask(_body, 127) # mask 1-7
+	PhysicsServer2D.body_set_param(_body, PhysicsServer2D.BODY_PARAM_MASS, 0.001)
+	PhysicsServer2D.body_set_param(_body, PhysicsServer2D.BODY_PARAM_LINEAR_DAMP_MODE, PhysicsServer2D.BODY_DAMP_MODE_REPLACE)
+	PhysicsServer2D.body_set_param(_body, PhysicsServer2D.BODY_PARAM_LINEAR_DAMP, 2.5)
+	PhysicsServer2D.body_set_param(_body, PhysicsServer2D.BODY_PARAM_BOUNCE, 0.25)
+
+	# Add force integration callback to body
 	PhysicsServer2D.body_set_force_integration_callback(_body, _body_moved, _pebbles.size() - 1)
 
 
