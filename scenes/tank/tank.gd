@@ -13,6 +13,8 @@ var _objects_max_scale: float = 5.0
 var _depth_layers: int = 5
 @export
 var _bd_texture: Texture2D
+@export
+var _debug_mode: bool = false
 
 @onready
 var _nav_region: NavigationRegion2D = $NavigationRegion2D
@@ -21,7 +23,7 @@ var _backdrop: TextureRect = $Backdrop
 @onready
 var _feed_parent: Node = $Feed
 @onready
-var _sand_spawner: SandSpawner = $SandSpawner
+var _pebble_spawner: PebbleSpawner = $PebbleSpawner
 
 var _cursor_in_feed_area: bool = false
 
@@ -41,17 +43,17 @@ func _process(_delta: float) -> void:
 
 
 func _handle_input() -> void:
-	var coo:Node2D = TankManager.get_cursor_over_object()
+	var coo: Node2D = TankManager.get_cursor_over_object()
 	if Input.is_action_just_pressed(Constants.IA_LMB):
 		SignalBus.on_object_clicked.emit(coo)
 		if _cursor_in_feed_area:
 			ObjectFactory.spawn_feed(get_global_mouse_position(), _feed_parent)
 
 
-func _set_sand_spawner() -> void:
-	var coo:Node2D = TankManager.get_cursor_over_object()
+func _set_pebble_spawner() -> void:
+	var coo: Node2D = TankManager.get_cursor_over_object()
 	var should_enable: bool = false if (coo != null or _cursor_in_feed_area) else true
-	_sand_spawner.set_enabled(should_enable)
+	_pebble_spawner.set_enabled(should_enable)
 
 
 # Public methods
@@ -72,21 +74,25 @@ func get_object_z_index(o: Node2D) -> int:
 	return o.z_index
 
 
+func get_debug_mode() -> bool:
+	return _debug_mode
+
+
 # Signal handlers
 
 func _on_feeder_area_mouse_exited() -> void:
 	_cursor_in_feed_area = false
-	_set_sand_spawner()
+	_set_pebble_spawner()
 
 
 func _on_feeder_area_mouse_entered() -> void:
 	_cursor_in_feed_area = true
-	_set_sand_spawner()
+	_set_pebble_spawner()
 
 
 func _on_mouse_over_object_changed(o: Node2D) -> void:
 	TankManager.set_cursor_over_object(o)
-	_set_sand_spawner()
+	_set_pebble_spawner()
 
 
 func _on_object_depth_changed(o: Node2D) -> void:

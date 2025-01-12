@@ -39,10 +39,14 @@ outlines = Array[PackedVector2Array]([PackedVector2Array(1139, 38, 1148, 640, -1
 _size = Vector2(1152, 648)
 _depth_layers = 3
 _bd_texture = ExtResource("2_kwcev")
+_debug_mode = true
 
 [node name="TestCL" type="CanvasLayer" parent="." index="0"]
 
 [node name="FishControl" parent="TestCL" index="0" instance=ExtResource("7_0su32")]
+
+[node name="PebbleSpawner" parent="." index="1"]
+_max_entities = 2000
 
 [node name="Backdrop" parent="." index="2"]
 anchors_preset = 15

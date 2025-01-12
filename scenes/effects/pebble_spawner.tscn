@@ -1,0 +1,14 @@
+[gd_scene load_steps=2 format=3 uid="uid://ccuq7n4mg7dyd"]
+
+[ext_resource type="Script" path="res://scenes/effects/pebble_spawner.gd" id="1_ryvnh"]
+
+[node name="PebbleSpawner" type="Node2D"]
+script = ExtResource("1_ryvnh")
+
+[node name="Debug" type="Label" parent="."]
+visible = false
+offset_right = 40.0
+offset_bottom = 23.0
+text = "PebbleSpawner debug view."
+
+[connection signal="tree_exiting" from="." to="." method="_on_tree_exiting"]
