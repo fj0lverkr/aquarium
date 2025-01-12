@@ -39,7 +39,7 @@ var _sprite: Sprite2D = $Sprite2D
 @onready
 var _mouth_area: Area2D = $MouthArea
 @onready
-var _debug_label:Label = $DebugLabel
+var _debug_label: Label = $DebugLabel
 
 @export
 var _status_collection: StatusCollection
@@ -57,8 +57,6 @@ var _swim_speed: float = 100.0
 var _energy_coefficient: float = 1
 @export
 var _hunger_coefficient: float = 0.25
-@export
-var _debug: bool = false
 
 
 var _stat_health: StatusValue
@@ -77,7 +75,6 @@ var _current_feed_target: Feed = null
 
 
 func _ready() -> void:
-	_debug_label.visible = _debug
 	SignalBus.on_tank_changed.connect(_on_tank_changed)
 	for e: Sprite2D in _emotes.values():
 		e.hide()
@@ -91,6 +88,7 @@ func _ready() -> void:
 		SignalBus.on_feed_spawned.connect(_on_feed_spawned)
 		SignalBus.on_feed_picked.connect(_on_feed_picked)
 		SignalBus.on_object_clicked.connect(_on_object_clicked)
+		call_deferred("_setup_debug")
 
 
 func _physics_process(_delta: float) -> void:
@@ -100,7 +98,7 @@ func _physics_process(_delta: float) -> void:
 		_update_navigation()
 		_handle_sprite_animation()
 
-	if _debug:
+	if TankManager.get_debug_mode():
 		_set_debug_label()
 
 
@@ -126,6 +124,10 @@ func _setup_object_scale() -> void:
 	_tank_depth_layers = TankManager.get_depth_layers()
 	var initial_dl: int = randi_range(1, _tank_depth_layers)
 	_change_depth(initial_dl)
+
+
+func _setup_debug() -> void:
+	_debug_label.visible = TankManager.get_debug_mode()
 
 
 func _check_minimum_stats_present() -> void:
@@ -203,12 +205,12 @@ func _correct_orientation() -> void:
 	if velocity.x > 0.0 or (velocity.x == 0.0 and velocity.y == 0.0 and _prev_vel_x > 0.0):
 		new_scale = abs_scale
 		_flip_emotes(false, false)
-		if _debug:
+		if TankManager.get_debug_mode():
 			_flip_debug_label(false)
 	else:
 		new_scale = Vector2(abs_scale.x, -abs_scale.y)
 		_flip_emotes(false, true)
-		if _debug:
+		if TankManager.get_debug_mode():
 			_flip_debug_label(true)
 
 	if new_scale == scale:
@@ -508,6 +510,6 @@ func _on_object_clicked(o: Node2D) -> void:
 # DEBUG
 
 func _set_debug_label() -> void:
-	var z_in_tank:int = TankManager.get_current_tank().get_object_z_index(self)
+	var z_in_tank: int = TankManager.get_current_tank().get_object_z_index(self)
 	var debug_string: String = "DL: %s, Z: %s" % [_current_depth_layer, z_in_tank]
 	_debug_label.text = debug_string

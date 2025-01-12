@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scenes/tank/tank.gd" id="1_i38ca"]
 [ext_resource type="PackedScene" uid="uid://cl56wdrky5din" path="res://scenes/tank/tank_wall.tscn" id="2_rghll"]
 [ext_resource type="PackedScene" uid="uid://du5gcvlhiw02o" path="res://scenes/tank/tank_bottom.tscn" id="3_6u050"]
-[ext_resource type="PackedScene" uid="uid://ccuq7n4mg7dyd" path="res://scenes/effects/sand_spawner.tscn" id="4_bughq"]
+[ext_resource type="PackedScene" uid="uid://ccuq7n4mg7dyd" path="res://scenes/effects/pebble_spawner.tscn" id="4_bughq"]
 [ext_resource type="PackedScene" uid="uid://bxgo61u12h32s" path="res://scenes/effects/water_overlay.tscn" id="4_gu3q3"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_w0k4c"]
@@ -12,7 +12,7 @@ size = Vector2(69.9432, 73)
 [node name="Tank" type="Node2D"]
 script = ExtResource("1_i38ca")
 
-[node name="SandSpawner" parent="." instance=ExtResource("4_bughq")]
+[node name="PebbleSpawner" parent="." instance=ExtResource("4_bughq")]
 
 [node name="Backdrop" type="TextureRect" parent="."]
 z_index = -4096
