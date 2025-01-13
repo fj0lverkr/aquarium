@@ -12,10 +12,14 @@ extends Node2D
 class PebbleData:
 	var body_rid: RID
 	var current_position: Vector2
+	var depth_layer: int
+	var z_index: int
+	var scale: int
 
-	func _init(b_rid: RID, initial_pos: Vector2) -> void:
+	func _init(b_rid: RID, initial_pos: Vector2, dl: int) -> void:
 		body_rid = b_rid
 		current_position = initial_pos
+		depth_layer = dl
 
 
 @onready
@@ -32,10 +36,12 @@ var _shape: RID
 var _enabled: bool = true # TODO: make this value depend on a game state indicating the player is in sand placement mode.
 var _pebbles: Array[PebbleData]
 var _spawn_position: Vector2 = Vector2.ZERO
+var _tank_dl: int
 
 func _ready() -> void:
 	_pebbles = []
 	call_deferred("_setup_debug")
+	call_deferred("_setup_tank_data")
 
 
 func _physics_process(_delta: float) -> void:
@@ -61,14 +67,19 @@ func _setup_debug() -> void:
 	_debug_label.visible = TankManager.get_debug_mode()
 
 
+func _setup_tank_data() -> void:
+	_tank_dl = TankManager.get_depth_layers()
+
+
 func _spawn_pebbles() -> void:
-	_setup_physics()
-	var p: PebbleData = PebbleData.new(_body, _spawn_position)
+	var dl: int = randi_range(1, _tank_dl)
+	_setup_physics(dl)
+	var p: PebbleData = PebbleData.new(_body, _spawn_position, dl)
 	_pebbles.append(p)
 	_debug_label.text = "Pebble count: %s" % _pebbles.size()
 
 
-func _setup_physics() -> void:
+func _setup_physics(dl: int) -> void:
 	# Create body
 	_body = PhysicsServer2D.body_create()
 	PhysicsServer2D.body_set_mode(_body, PhysicsServer2D.BODY_MODE_RIGID)

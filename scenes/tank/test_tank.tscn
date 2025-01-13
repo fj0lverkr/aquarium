@@ -78,7 +78,7 @@ navigation_polygon = SubResource("NavigationPolygon_uwjx0")
 position = Vector2(582.5, 26.5)
 scale = Vector2(17.6, 1)
 
-[node name="WaterOverlay" parent="." index="10"]
+[node name="WaterOverlay" parent="." index="9"]
 position = Vector2(576, 309)
 scale = Vector2(1.5, 1.5)
 
