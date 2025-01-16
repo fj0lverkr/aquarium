@@ -110,8 +110,8 @@ func _body_moved(state: PhysicsDirectBodyState2D, index: int) -> void:
 
 
 func _setup_depth_collision(dl: int) -> void:
-	var layer_values: Array[int] = [7]
-	var mask_values: Array[int] = [5]
+	var layer_values: Array[int] = [7] # layer 7 "sand"
+	var mask_values: Array[int] = [5] # mask 5 "tank borders"
 	var dl_value: int = Constants.PL_DEPTH_LAYER[dl]
 	var layer_value: int
 	var mask_value: int
