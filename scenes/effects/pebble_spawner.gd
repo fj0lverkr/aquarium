@@ -1,19 +1,12 @@
 class_name PebbleSpawner
 extends Node2D
 
-### TODO ###
-# Spawn sand in depth layers, add collision masks accordingly --> DONE
-# Adjust z-index accordingly
-# Adjust scaling accordingly
-# adjust shading accordinly
-
 
 # Small inner class to store pebble data
 class PebbleData:
 	var body_rid: RID
 	var current_position: Vector2
 	var depth_layer: int
-	var z_index: int
 	var scale: int
 
 	func _init(b_rid: RID, initial_pos: Vector2, dl: int) -> void:
@@ -22,6 +15,34 @@ class PebbleData:
 		depth_layer = dl
 
 
+# Inner class to help drawing the pebbles
+class PebbleGraphic extends Node2D:
+	var _pb: PebbleData
+	var _t: Texture2D
+
+
+	func _init(pb: PebbleData, t: Texture2D):
+		_pb = pb
+		_t = t
+		SignalBus.on_object_depth_changed.emit(self)
+
+
+	func _process(_delta: float) -> void:
+		queue_redraw()
+
+
+	func _draw() -> void:
+		if not _t:
+			return
+		var offset = _t.get_size() / 2.0
+		draw_texture(_t, _pb.current_position - offset, Constants.COL_DEPTH_MOD[_pb.depth_layer])
+
+
+	func get_depth_layer() -> int:
+		return _pb.depth_layer
+
+
+# PebbleSpawner BEGIN
 @onready
 var _debug_label: Label = $Debug
 
@@ -45,22 +66,10 @@ func _ready() -> void:
 
 
 func _physics_process(_delta: float) -> void:
-	queue_redraw()
 	if Input.is_action_pressed("LeftClick") and _enabled:
 		_spawn_position = get_global_mouse_position()
 		_spawn_pebbles()
 		_cull_pebbles()
-
-
-func _draw() -> void:
-	if not _texture:
-		return
-	var offset = _texture.get_size() / 2.0
-	for p: PebbleData in _pebbles:
-		draw_texture(
-			_texture,
-			p.current_position - offset
-		)
 
 
 func _setup_debug() -> void:
@@ -72,10 +81,14 @@ func _setup_tank_data() -> void:
 
 
 func _spawn_pebbles() -> void:
+	var g: PebbleGraphic
 	var dl: int = randi_range(1, _tank_dl)
 	_setup_physics(dl)
 	var p: PebbleData = PebbleData.new(_body, _spawn_position, dl)
+	g = PebbleGraphic.new(p, _texture)
 	_pebbles.append(p)
+	add_child(g)
+
 	_debug_label.text = "Pebble count: %s" % _pebbles.size()
 
 
