@@ -50,7 +50,7 @@ _data = {
 
 [node name="Feed" type="RigidBody2D"]
 collision_layer = 2
-collision_mask = 80
+collision_mask = 16
 mass = 0.001
 physics_material_override = SubResource("PhysicsMaterial_f7342")
 can_sleep = false

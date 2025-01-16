@@ -27,3 +27,12 @@ func set_depth_collision_mask(o: Node2D, dl: int) -> void:
 	if o.has_method("set_collision_mask_value"):
 		for d: int in Constants.PL_DEPTH_LAYER:
 			o.set_collision_mask_value(Constants.PL_DEPTH_LAYER[d], d == dl)
+
+
+func calculate_bitmask(values: Array[int]) -> int:
+	if values.is_empty():
+		return -1
+	var value: int = 0
+	for v: int in values:
+		value |= 1 << (v - 1)
+	return value

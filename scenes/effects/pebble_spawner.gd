@@ -2,7 +2,7 @@ class_name PebbleSpawner
 extends Node2D
 
 ### TODO ###
-# Spawn sand in depth layers, add collision masks accordingly
+# Spawn sand in depth layers, add collision masks accordingly --> DONE
 # Adjust z-index accordingly
 # Adjust scaling accordingly
 # adjust shading accordinly
@@ -94,8 +94,7 @@ func _setup_physics(dl: int) -> void:
 	PhysicsServer2D.body_set_state(_body, PhysicsServer2D.BODY_STATE_TRANSFORM, Transform2D(0, _spawn_position))
 
 	# Configure body
-	PhysicsServer2D.body_set_collision_layer(_body, 64) # layer 7
-	PhysicsServer2D.body_set_collision_mask(_body, 127) # mask 1-7
+	_setup_depth_collision(dl)
 	PhysicsServer2D.body_set_param(_body, PhysicsServer2D.BODY_PARAM_MASS, 0.001)
 	PhysicsServer2D.body_set_param(_body, PhysicsServer2D.BODY_PARAM_LINEAR_DAMP_MODE, PhysicsServer2D.BODY_DAMP_MODE_REPLACE)
 	PhysicsServer2D.body_set_param(_body, PhysicsServer2D.BODY_PARAM_LINEAR_DAMP, 2.5)
@@ -108,6 +107,21 @@ func _setup_physics(dl: int) -> void:
 func _body_moved(state: PhysicsDirectBodyState2D, index: int) -> void:
 	if index < _pebbles.size() - 1:
 		_pebbles[index].current_position = state.transform.origin
+
+
+func _setup_depth_collision(dl: int) -> void:
+	var layer_values: Array[int] = [7]
+	var mask_values: Array[int] = [5]
+	var dl_value: int = Constants.PL_DEPTH_LAYER[dl]
+	var layer_value: int
+	var mask_value: int
+	layer_values.append(dl_value)
+	mask_values.append(dl_value)
+	layer_value = Util.calculate_bitmask(layer_values)
+	mask_value = Util.calculate_bitmask(mask_values)
+	if layer_value >= 0 and mask_value >= 0:
+		PhysicsServer2D.body_set_collision_layer(_body, layer_value)
+		PhysicsServer2D.body_set_collision_mask(_body, mask_value)
 
 
 func _cull_pebbles() -> void:
