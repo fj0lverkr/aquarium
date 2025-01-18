@@ -63,7 +63,11 @@ LeftClick={
 
 [physics]
 
+2d/run_on_separate_thread=true
+common/physics_ticks_per_second=45
+common/physics_jitter_fix=0.0
 2d/physics_engine="Rapier2D"
+common/physics_interpolation=true
 
 [rendering]
 
