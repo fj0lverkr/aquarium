@@ -41,3 +41,7 @@ func get_cursor_over_object() -> Node2D:
 
 func get_debug_mode() -> bool:
 	return _current_tank.get_debug_mode()
+
+
+func get_pebble_body_rids() -> Array[RID]:
+	return _current_tank.get_pebble_body_rids()

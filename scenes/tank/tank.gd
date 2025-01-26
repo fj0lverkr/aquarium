@@ -78,6 +78,12 @@ func get_debug_mode() -> bool:
 	return _debug_mode
 
 
+func get_pebble_body_rids() -> Array[RID]:
+	if not _pebble_spawner:
+		return []
+	return _pebble_spawner.get_body_rids()
+
+
 # Signal handlers
 
 func _on_feeder_area_mouse_exited() -> void:

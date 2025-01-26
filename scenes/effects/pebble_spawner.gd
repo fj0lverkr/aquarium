@@ -6,6 +6,7 @@ extends Node2D
 class PebbleData:
 	var body_rid: RID
 	var current_position: Vector2
+	var current_rotation: float
 	var depth_layer: int
 	var scale: int
 
@@ -38,7 +39,7 @@ class PebbleGraphic extends Node2D:
 		if not _t:
 			return
 		var offset: Vector2 = _t.get_size() / 2.0
-		var draw_pos: Vector2 = (_pb.current_position / _sf) - offset
+		var draw_pos: Vector2 = _pb.current_position / _sf - offset
 		draw_texture(_t, draw_pos, Constants.COL_DEPTH_MOD[_pb.depth_layer])
 
 
@@ -88,7 +89,8 @@ func _setup_tank_data() -> void:
 func _spawn_pebbles() -> void:
 	var g: PebbleGraphic
 	var dl: int = randi_range(1, _tank_dl)
-	_scale_factor = randf_range(0.75, 2.0)
+
+	_setup_scale_factor(dl)
 	_setup_physics(dl)
 	var p: PebbleData = PebbleData.new(_body, _spawn_position, dl)
 	g = PebbleGraphic.new(p, _texture, _scale_factor)
@@ -98,14 +100,40 @@ func _spawn_pebbles() -> void:
 	_debug_label.text = "Pebble count: %s" % _pebbles.size()
 
 
+func _setup_scale_factor(dl: int) -> void:
+	var min_sf: float
+	var max_sf: float
+	match dl:
+		1:
+			min_sf = 1.5
+			max_sf = 2.5
+		2:
+			min_sf = 1
+			max_sf = 2
+		3:
+			min_sf = 0.75
+			max_sf = 1.5
+		4:
+			min_sf = 0.75
+			max_sf = 1.0
+		5:
+			min_sf = 0.5
+			max_sf = 1.0
+
+	_scale_factor = randf_range(min_sf, max_sf)
+
+
 func _setup_physics(dl: int) -> void:
+	var gs: float = randf_range(0.25, 1.0)
+	var ss: float = 4 * _scale_factor
+
 	# Create body
 	_body = PhysicsServer2D.body_create()
 	PhysicsServer2D.body_set_mode(_body, PhysicsServer2D.BODY_MODE_RIGID)
 
 	# Create shape and add to body
 	_shape = PhysicsServer2D.circle_shape_create()
-	PhysicsServer2D.shape_set_data(_shape, 4 * _scale_factor)
+	PhysicsServer2D.shape_set_data(_shape, ss)
 	PhysicsServer2D.body_add_shape(_body, _shape)
 
 	# Add body to worldspace
@@ -114,7 +142,8 @@ func _setup_physics(dl: int) -> void:
 
 	# Configure body
 	_setup_depth_collision(dl)
-	PhysicsServer2D.body_set_param(_body, PhysicsServer2D.BODY_PARAM_MASS, 0.001)
+	PhysicsServer2D.body_set_param(_body, PhysicsServer2D.BODY_PARAM_MASS, 0.0001)
+	PhysicsServer2D.body_set_param(_body, PhysicsServer2D.BODY_PARAM_GRAVITY_SCALE, gs)
 	PhysicsServer2D.body_set_param(_body, PhysicsServer2D.BODY_PARAM_LINEAR_DAMP_MODE, PhysicsServer2D.BODY_DAMP_MODE_REPLACE)
 	PhysicsServer2D.body_set_param(_body, PhysicsServer2D.BODY_PARAM_LINEAR_DAMP, 2.5)
 	PhysicsServer2D.body_set_param(_body, PhysicsServer2D.BODY_PARAM_BOUNCE, 0.25)
@@ -126,6 +155,7 @@ func _setup_physics(dl: int) -> void:
 func _body_moved(state: PhysicsDirectBodyState2D, index: int) -> void:
 	if index < _pebbles.size() - 1:
 		_pebbles[index].current_position = state.transform.origin
+		_pebbles[index].current_rotation = state.transform.get_rotation()
 
 
 func _setup_depth_collision(dl: int) -> void:
@@ -161,3 +191,10 @@ func _on_tree_exiting() -> void:
 
 func set_enabled(e: bool) -> void:
 	_enabled = e
+
+
+func get_body_rids() -> Array[RID]:
+	var rids: Array[RID] = []
+	for pd: PebbleData in _pebbles:
+		rids.append(pd.body_rid)
+	return rids

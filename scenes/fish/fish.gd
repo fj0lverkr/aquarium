@@ -153,6 +153,7 @@ func _update_navigation() -> void:
 		_current_nav_point = next_nav_point
 	_correct_orientation()
 	move_and_slide()
+	_process_slide_collisions()
 
 
 func _set_destination() -> void:
@@ -392,6 +393,18 @@ func _is_area_on_same_depth_layer(area: Area2D) -> bool:
 
 func _defer_on_depth_changed() -> void:
 	SignalBus.on_object_depth_changed.emit(self)
+
+
+func _process_slide_collisions():
+	var num_col: int = get_slide_collision_count()
+	if num_col == 0:
+		return
+
+	for i: int in num_col:
+		var sc: KinematicCollision2D = get_slide_collision(i)
+		if TankManager.get_pebble_body_rids().has(sc.get_collider_rid()):
+			# Here we can interact with the pebbles if needed.
+			pass
 
 
 # PUBLIC FUNCTIONS
