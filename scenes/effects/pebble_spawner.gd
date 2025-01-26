@@ -19,23 +19,27 @@ class PebbleData:
 class PebbleGraphic extends Node2D:
 	var _pb: PebbleData
 	var _t: Texture2D
+	var _sf: float
 
 
-	func _init(pb: PebbleData, t: Texture2D):
+	func _init(pb: PebbleData, t: Texture2D, sf: float):
 		_pb = pb
 		_t = t
+		_sf = sf
+		scale *= sf
 		SignalBus.on_object_depth_changed.emit(self)
 
 
-	func _process(_delta: float) -> void:
+	func _physics_process(_delta: float) -> void:
 		queue_redraw()
 
 
 	func _draw() -> void:
 		if not _t:
 			return
-		var offset = _t.get_size() / 2.0
-		draw_texture(_t, _pb.current_position - offset, Constants.COL_DEPTH_MOD[_pb.depth_layer])
+		var offset: Vector2 = _t.get_size() / 2.0
+		var draw_pos: Vector2 = (_pb.current_position / _sf) - offset
+		draw_texture(_t, draw_pos, Constants.COL_DEPTH_MOD[_pb.depth_layer])
 
 
 	func get_depth_layer() -> int:
@@ -47,7 +51,7 @@ class PebbleGraphic extends Node2D:
 var _debug_label: Label = $Debug
 
 @export_range(0, 2000)
-var _max_entities: int = 1500
+var _max_entities: int = 2000
 @export
 var _texture: Texture2D = preload("res://assets/images/effects/sand_8_8.png")
 
@@ -58,6 +62,7 @@ var _enabled: bool = true # TODO: make this value depend on a game state indicat
 var _pebbles: Array[PebbleData]
 var _spawn_position: Vector2 = Vector2.ZERO
 var _tank_dl: int
+var _scale_factor: float = 2.0
 
 func _ready() -> void:
 	_pebbles = []
@@ -83,9 +88,10 @@ func _setup_tank_data() -> void:
 func _spawn_pebbles() -> void:
 	var g: PebbleGraphic
 	var dl: int = randi_range(1, _tank_dl)
+	_scale_factor = randf_range(0.75, 2.0)
 	_setup_physics(dl)
 	var p: PebbleData = PebbleData.new(_body, _spawn_position, dl)
-	g = PebbleGraphic.new(p, _texture)
+	g = PebbleGraphic.new(p, _texture, _scale_factor)
 	_pebbles.append(p)
 	add_child(g)
 
@@ -99,7 +105,7 @@ func _setup_physics(dl: int) -> void:
 
 	# Create shape and add to body
 	_shape = PhysicsServer2D.circle_shape_create()
-	PhysicsServer2D.shape_set_data(_shape, 4)
+	PhysicsServer2D.shape_set_data(_shape, 4 * _scale_factor)
 	PhysicsServer2D.body_add_shape(_body, _shape)
 
 	# Add body to worldspace

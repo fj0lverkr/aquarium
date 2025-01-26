@@ -45,9 +45,6 @@ _debug_mode = true
 
 [node name="FishControl" parent="TestCL" index="0" instance=ExtResource("7_0su32")]
 
-[node name="PebbleSpawner" parent="." index="1"]
-_max_entities = 2000
-
 [node name="Backdrop" parent="." index="2"]
 anchors_preset = 15
 anchor_right = 1.0
