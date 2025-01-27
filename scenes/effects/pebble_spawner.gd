@@ -54,7 +54,7 @@ var _debug_label: Label = $Debug
 @export_range(0, 2000)
 var _max_entities: int = 2000
 @export
-var _texture: Texture2D = preload("res://assets/images/effects/sand_8_8.png")
+var _texture: Texture2D = preload("res://assets/images/effects/sand_8_8.png") # TODO make this an array of textures from which we randomly select one to draw with each pebble
 
 var _body: RID
 var _shape: RID
