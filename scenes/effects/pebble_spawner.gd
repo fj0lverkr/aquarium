@@ -125,7 +125,7 @@ func _setup_scale_factor(dl: int) -> void:
 
 func _setup_physics(dl: int) -> void:
 	var gs: float = randf_range(0.25, 1.0)
-	var ss: float = 4 * _scale_factor
+	var ss: float = _texture.get_size().x / 2 * _scale_factor
 
 	# Create body
 	_body = PhysicsServer2D.body_create()
