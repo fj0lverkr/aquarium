@@ -4,11 +4,16 @@
 [ext_resource type="PackedScene" uid="uid://c053662450ck0" path="res://scenes/tank/barrier.tscn" id="1_8e60t"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_0mr6e"]
-size = Vector2(38, 681)
+size = Vector2(35, 680)
 
 [node name="TankWall" instance=ExtResource("1_8e60t")]
 script = ExtResource("1_6or5r")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." index="0"]
-position = Vector2(9, 320.5)
+position = Vector2(17.5, 340)
 shape = SubResource("RectangleShape2D_0mr6e")
+
+[node name="ColorRect" type="ColorRect" parent="." index="1"]
+offset_right = 35.0
+offset_bottom = 680.0
+color = Color(0, 0, 1, 0.392157)
