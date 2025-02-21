@@ -2,7 +2,7 @@ shader_type canvas_item;
 
 uniform vec4 color:source_color;
 uniform sampler2D fast_noise:repeat_enable;
-uniform sampler2D screen_content: hint_screen_texture;
+uniform sampler2D screen_content: hint_screen_texture, filter_linear_mipmap;
 uniform vec2 speed = vec2(0.03,0.07);
 uniform float wave_str = 2.0;
 
