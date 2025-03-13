@@ -4,8 +4,8 @@
 [ext_resource type="Texture2D" uid="uid://8ok658sjc7wy" path="res://assets/images/backgrounds/ocean.png" id="2_kwcev"]
 [ext_resource type="PackedScene" uid="uid://byup1sgiqtkak" path="res://scenes/fish/blue_tang.tscn" id="3_1fav4"]
 [ext_resource type="Resource" uid="uid://b0i207uk21vai" path="res://resources/bt_test_collection.tres" id="4_emj8k"]
-[ext_resource type="Script" path="res://resources/status_value.gd" id="5_mu25p"]
-[ext_resource type="Script" path="res://resources/status_values.gd" id="6_4h0qu"]
+[ext_resource type="Script" uid="uid://d31oanoqhwugf" path="res://resources/status_value.gd" id="5_mu25p"]
+[ext_resource type="Script" uid="uid://dnnkj7vcmfxy" path="res://resources/status_values.gd" id="6_4h0qu"]
 [ext_resource type="PackedScene" uid="uid://cgoyab6urinc0" path="res://scenes/HUD/fish_control.tscn" id="7_0su32"]
 
 [sub_resource type="Resource" id="Resource_ct5cd"]

@@ -1,7 +1,7 @@
 [gd_scene load_steps=10 format=3 uid="uid://byup1sgiqtkak"]
 
 [ext_resource type="PackedScene" uid="uid://cawk3n5xlq5uk" path="res://scenes/fish/fish.tscn" id="1_yyvfo"]
-[ext_resource type="Script" path="res://scenes/fish/blue_tang.gd" id="2_b0ull"]
+[ext_resource type="Script" uid="uid://buqhxjrjj7wqh" path="res://scenes/fish/blue_tang.gd" id="2_b0ull"]
 [ext_resource type="Texture2D" uid="uid://cypr13dr28821" path="res://assets/images/fish/blue.png" id="3_lm8er"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_mpbkc"]
@@ -49,8 +49,8 @@ tracks/0/keys = {
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_ijsa1"]
 _data = {
-"RESET": SubResource("Animation_gsisl"),
-"swim": SubResource("Animation_i7hwy")
+&"RESET": SubResource("Animation_gsisl"),
+&"swim": SubResource("Animation_i7hwy")
 }
 
 [node name="BlueTang" instance=ExtResource("1_yyvfo")]

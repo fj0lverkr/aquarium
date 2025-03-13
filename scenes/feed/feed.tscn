@@ -1,6 +1,6 @@
 [gd_scene load_steps=8 format=3 uid="uid://cnqi1xr3vh23r"]
 
-[ext_resource type="Script" path="res://scenes/feed/feed.gd" id="1_1gr8j"]
+[ext_resource type="Script" uid="uid://dvlkfm3vy3xoh" path="res://scenes/feed/feed.gd" id="1_1gr8j"]
 [ext_resource type="Texture2D" uid="uid://dar13gtjxsuqf" path="res://assets/images/feed/feed1_s.png" id="1_8shal"]
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_f7342"]
@@ -44,8 +44,8 @@ tracks/0/keys = {
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_wy1yg"]
 _data = {
-"RESET": SubResource("Animation_7d6mo"),
-"fade_out": SubResource("Animation_ea472")
+&"RESET": SubResource("Animation_7d6mo"),
+&"fade_out": SubResource("Animation_ea472")
 }
 
 [node name="Feed" type="RigidBody2D"]
@@ -76,7 +76,7 @@ one_shot = true
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 libraries = {
-"": SubResource("AnimationLibrary_wy1yg")
+&"": SubResource("AnimationLibrary_wy1yg")
 }
 
 [connection signal="body_shape_entered" from="." to="." method="_on_body_shape_entered"]

@@ -1,6 +1,6 @@
 [gd_scene load_steps=7 format=3 uid="uid://cawk3n5xlq5uk"]
 
-[ext_resource type="Script" path="res://scenes/fish/fish.gd" id="1_7qprw"]
+[ext_resource type="Script" uid="uid://clfihsno74k8f" path="res://scenes/fish/fish.gd" id="1_7qprw"]
 [ext_resource type="Texture2D" uid="uid://q2kc7cackols" path="res://assets/images/emotes/sleep.png" id="2_gf4pu"]
 
 [sub_resource type="Animation" id="Animation_i1w2k"]
@@ -37,8 +37,8 @@ tracks/0/keys = {
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_x1xwv"]
 _data = {
-"RESET": SubResource("Animation_i1w2k"),
-"sleeping": SubResource("Animation_c37x0")
+&"RESET": SubResource("Animation_i1w2k"),
+&"sleeping": SubResource("Animation_c37x0")
 }
 
 [sub_resource type="LabelSettings" id="LabelSettings_hdl8y"]
@@ -82,7 +82,7 @@ hframes = 4
 
 [node name="MoodPlayer" type="AnimationPlayer" parent="."]
 libraries = {
-"": SubResource("AnimationLibrary_x1xwv")
+&"": SubResource("AnimationLibrary_x1xwv")
 }
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]

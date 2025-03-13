@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://c053662450ck0"]
 
-[ext_resource type="Script" path="res://scenes/tank/barrier.gd" id="1_3eyhd"]
+[ext_resource type="Script" uid="uid://bn46txjm6b0td" path="res://scenes/tank/barrier.gd" id="1_3eyhd"]
 
 [node name="Barrier" type="StaticBody2D"]
 collision_layer = 16
