@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://slroppddfei8"]
 
 [ext_resource type="Texture2D" uid="uid://c5fknp4uejmat" path="res://assets/images/effects/bubble_6_6.png" id="1_036re"]
-[ext_resource type="Script" path="res://scenes/fish/mouth_bubbles_emitter.gd" id="2_s07uu"]
+[ext_resource type="Script" uid="uid://cukullu1cr4dj" path="res://scenes/fish/mouth_bubbles_emitter.gd" id="2_s07uu"]
 
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_vmwh6"]
 resource_local_to_scene = true

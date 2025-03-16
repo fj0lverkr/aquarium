@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://ccuq7n4mg7dyd"]
 
-[ext_resource type="Script" path="res://scenes/effects/pebble_spawner.gd" id="1_ryvnh"]
+[ext_resource type="Script" uid="uid://cevx6ulwbkbyf" path="res://scenes/effects/pebble_spawner.gd" id="1_ryvnh"]
 
 [node name="PebbleSpawner" type="Node2D"]
 script = ExtResource("1_ryvnh")

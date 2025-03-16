@@ -2,7 +2,7 @@
 
 [ext_resource type="Texture2D" uid="uid://8ok658sjc7wy" path="res://assets/images/backgrounds/ocean.png" id="1_mlq4y"]
 [ext_resource type="Texture2D" uid="uid://cdd6dqa1ua741" path="res://icon.svg" id="2_ixhyl"]
-[ext_resource type="Shader" path="res://scenes/effects/water_overlay.gdshader" id="2_v3h2u"]
+[ext_resource type="Shader" uid="uid://brpc5wi05ewjk" path="res://scenes/effects/water_overlay.gdshader" id="2_v3h2u"]
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_xk5as"]
 noise_type = 2
@@ -19,9 +19,9 @@ noise = SubResource("FastNoiseLite_xk5as")
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_u0mna"]
 shader = ExtResource("2_v3h2u")
 shader_parameter/color = Color(0.273475, 0.757205, 0.991179, 1)
+shader_parameter/fast_noise = SubResource("NoiseTexture2D_x5jer")
 shader_parameter/speed = Vector2(0.02, 0.01)
 shader_parameter/wave_str = 1.25
-shader_parameter/fast_noise = SubResource("NoiseTexture2D_x5jer")
 
 [node name="WaterOverlay" type="Node2D"]
 

@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://mx85xh5gapmi"]
 
-[ext_resource type="Script" path="res://scenes/poop/poop_node.gd" id="1_u3p77"]
+[ext_resource type="Script" uid="uid://wqi4h6pcd6ub" path="res://scenes/poop/poop_node.gd" id="1_u3p77"]
 
 [node name="PoopNode" type="RigidBody2D"]
 script = ExtResource("1_u3p77")

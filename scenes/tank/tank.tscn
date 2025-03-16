@@ -1,6 +1,6 @@
 [gd_scene load_steps=7 format=3 uid="uid://bihqfkk8gjp5b"]
 
-[ext_resource type="Script" path="res://scenes/tank/tank.gd" id="1_i38ca"]
+[ext_resource type="Script" uid="uid://duuhn8dxc1m5t" path="res://scenes/tank/tank.gd" id="1_i38ca"]
 [ext_resource type="PackedScene" uid="uid://cl56wdrky5din" path="res://scenes/tank/tank_wall.tscn" id="2_rghll"]
 [ext_resource type="PackedScene" uid="uid://du5gcvlhiw02o" path="res://scenes/tank/tank_bottom.tscn" id="3_6u050"]
 [ext_resource type="PackedScene" uid="uid://ccuq7n4mg7dyd" path="res://scenes/effects/pebble_spawner.tscn" id="4_bughq"]

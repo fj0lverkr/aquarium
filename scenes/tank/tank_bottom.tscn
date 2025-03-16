@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://du5gcvlhiw02o"]
 
 [ext_resource type="PackedScene" uid="uid://c053662450ck0" path="res://scenes/tank/barrier.tscn" id="1_ik3ud"]
-[ext_resource type="Script" path="res://scenes/tank/tank_bottom.gd" id="2_gt51i"]
+[ext_resource type="Script" uid="uid://bflvgcwvb5iif" path="res://scenes/tank/tank_bottom.gd" id="2_gt51i"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_c64cq"]
 size = Vector2(1175, 20)
