@@ -3,10 +3,6 @@ extends CharacterBody2D
 
 ## Base class for Fish, all other Fish should inherit from this.
 
-## TODO: change movement logic to adhere to the following:
-## - to get food, fish should swim to a feed item at the same "depth", changing "depth" if required
-## - the change in depth should be used in all calculations that currently only use the distance traveled
-
 enum State {IDLE, HUNT, REST, }
 enum EmoteName {SLEEPING, }
 
@@ -18,8 +14,6 @@ const DEPTH_TIME: float = 1.23
 
 const StatusType = StatusValue.StatusType
 
-@onready
-var _nav_agent: NavigationAgent2D = $NavigationAgent2D
 @onready
 var _collider: CollisionShape2D = $CollisionShape2D
 @onready
@@ -68,7 +62,6 @@ var _max_scale: Vector2
 var _tank_depth_layers: int
 var _current_depth_layer: int = -1
 var _current_state: State = State.IDLE
-var _current_nav_point: Vector2
 var _prev_vel_x: float = 0.0
 var _distance_traveled: float = 0.0
 var _current_feed_target: Feed = null
@@ -84,7 +77,6 @@ func _ready() -> void:
 		queue_free()
 	else:
 		_setup()
-		NavigationServer2D.map_changed.connect(_on_nav_map_changed)
 		SignalBus.on_feed_spawned.connect(_on_feed_spawned)
 		SignalBus.on_feed_picked.connect(_on_feed_picked)
 		SignalBus.on_object_clicked.connect(_on_object_clicked)
@@ -92,11 +84,7 @@ func _ready() -> void:
 
 
 func _physics_process(_delta: float) -> void:
-	if _current_state != State.REST:
-		if _current_state == State.HUNT:
-			_calculate_feed_target()
-		_update_navigation()
-		_handle_sprite_animation()
+	_handle_sprite_animation()
 
 	if TankManager.get_debug_mode():
 		_set_debug_label()
@@ -141,44 +129,12 @@ func _get_fish_size() -> float:
 	return s.x if s.x > s.y else s.y
 
 
-func _update_navigation() -> void:
-	if _current_state == State.HUNT:
-		_calculate_feed_target()
-		if _current_feed_target != null:
-			_nav_agent.target_position = _current_feed_target.global_position
-	var next_nav_point: Vector2 = _nav_agent.get_next_path_position()
-	velocity = global_position.direction_to(next_nav_point) * _swim_speed
-	if next_nav_point != _current_nav_point:
-		_fish_look_at(next_nav_point)
-		_current_nav_point = next_nav_point
-	_correct_orientation()
-	move_and_slide()
-	_process_slide_collisions()
-
-
-func _set_destination() -> void:
-	match _current_state:
-		State.IDLE:
-			_nav_agent.target_position = TankManager.get_random_point_in_tank()
-			_set_depth()
-		State.HUNT:
-			if _current_feed_target != null:
-				_nav_agent.target_position = _current_feed_target.global_position
-			else:
-				_nav_agent.target_position = TankManager.get_random_point_in_tank()
-				_set_depth()
-	_distance_traveled = global_position.distance_to(_nav_agent.target_position)
-
-
 func _set_depth() -> void:
 	var roll: int = Util.dice_roll(6)
 	if roll < 5:
 		return
-	var travel_time = global_position.distance_to(_nav_agent.target_position) / _swim_speed
 	var dl: int = randi_range(1, _tank_depth_layers)
-	var dif: int = abs(_current_depth_layer - dl)
-	if travel_time > DEPTH_TIME * dif or _current_depth_layer == -1:
-		_change_depth(dl)
+	_change_depth(dl)
 
 
 func _fish_look_at(where: Vector2) -> void:
@@ -306,11 +262,7 @@ func _calculate_feed_target() -> void:
 		for f: Feed in feed:
 			if _current_feed_target == null or global_position.distance_to(f.global_position) < global_position.distance_to(_current_feed_target.global_position):
 				if f.check_pickable():
-					var travel_time = global_position.distance_to(_nav_agent.target_position) / _swim_speed
-					var dl: int = f.get_depth_layer()
-					var dif: int = abs(_current_depth_layer - dl)
-					if travel_time > DEPTH_TIME * dif:
-						_current_feed_target = f
+					_current_feed_target = f
 
 	if _current_feed_target != null and _current_feed_target.get_depth_layer() != _current_depth_layer:
 		_change_depth(_current_feed_target.get_depth_layer())
@@ -324,7 +276,6 @@ func _reset_feed_target() -> void:
 	if _current_state != State.HUNT:
 		return
 	_calculate_feed_target()
-	_set_destination()
 
 
 func _reset_state() -> void:
@@ -453,30 +404,13 @@ func _on_sv_maxed_out(s: StatusValue.StatusType) -> void:
 			_current_state = State.IDLE
 
 
-func _on_nav_map_changed(_map: RID) -> void:
-	if !is_physics_processing():
-		set_physics_process(true)
-		_set_destination()
-
-
-func _on_navigation_finished() -> void:
-	_prev_vel_x = velocity.x
-	_calculate_resources_spent()
-	if _current_state == State.REST:
-		await _rest()
-	_set_destination()
-
-
 func _on_avoidance_area_body_entered(body: Node2D) -> void:
 	if body == self:
 		return
-	if _is_body_on_same_depth_layer(body):
-		_set_destination()
-
 
 func _on_avoidance_area_area_shape_entered(_area_rid: RID, area: Area2D, _area_shape_index: int, _local_shape_index: int) -> void:
 	if area.get_parent() is Fish and _current_state != State.REST and _is_area_on_same_depth_layer(area):
-		_nav_agent.navigation_finished.emit()
+		pass
 
 
 func _on_mouth_area_body_entered(body: Node2D) -> void:
@@ -492,7 +426,6 @@ func _on_mouth_area_body_entered(body: Node2D) -> void:
 			_reset_state()
 		if _current_feed_target == f:
 			_current_feed_target = null
-		_set_destination()
 
 
 func _on_feed_spawned() -> void:
