@@ -17,8 +17,6 @@ var _bd_texture: Texture2D
 var _debug_mode: bool = false
 
 @onready
-var _nav_region: NavigationRegion2D = $NavigationRegion2D
-@onready
 var _backdrop: TextureRect = $Backdrop
 @onready
 var _feed_parent: Node = $Feed
@@ -57,10 +55,6 @@ func _set_pebble_spawner() -> void:
 
 
 # Public methods
-
-func get_random_point_in_tank() -> Vector2:
-	return NavigationServer2D.region_get_random_point(_nav_region.get_rid(), 1, false)
-
 
 func get_object_scales() -> Vector2:
 	return Vector2(_objects_min_scale, _objects_max_scale)
