@@ -190,10 +190,10 @@ func _idle_animation(is_resting: bool) -> void:
 	await Util.wait(ROTATION_TIME)
 	ObjectFactory.spawn_mouth_bubbles(_mbe_marker.global_position, scale, _transient_children)
 	_idle_tween = create_tween().set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_BOUNCE)
-	_idle_tween.tween_property(self, "global_position:y", global_position.y - 1, randf_range(0.25, 0.35))
+	_idle_tween.tween_property(self, "global_position:y", global_position.y - 1, randf_range(0.25, 0.55))
 	_idle_tween.set_loops()
-	_idle_tween.tween_property(self, "global_position:y", global_position.y + 2, randf_range(0.25, 0.35))
-	_idle_tween.tween_property(self, "global_position:y", global_position.y - 2, randf_range(0.25, 0.35))
+	_idle_tween.tween_property(self, "global_position:y", global_position.y + 2, randf_range(0.25, 0.55))
+	_idle_tween.tween_property(self, "global_position:y", global_position.y - 2, randf_range(0.25, 0.55))
 
 	if is_resting:
 		_play_emote(EmoteName.SLEEPING)
