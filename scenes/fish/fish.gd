@@ -85,7 +85,7 @@ func _ready() -> void:
 
 
 func _physics_process(_delta: float) -> void:
-	_handle_sprite_animation()
+	_handle_current_state()
 
 	if TankManager.get_debug_mode():
 		_set_debug_label()
@@ -211,6 +211,9 @@ func _end_idle() -> void:
 	_is_idling = false
 
 
+func _wandering() -> void:
+	pass
+
 func _play_emote(emote_name: EmoteName) -> void:
 	var e: Sprite2D = _emotes.get(emote_name)
 	e.show()
@@ -236,7 +239,7 @@ func _flip_debug_label(flip: bool) -> void:
 	_debug_label.position.x += half_label if flip else -half_label
 
 
-func _handle_sprite_animation() -> void:
+func _handle_current_state() -> void:
 	match _current_state:
 		State.CHASING, State.FLEEING:
 			if _anim_player.current_animation == SWIM and _anim_player.is_playing():
@@ -247,9 +250,24 @@ func _handle_sprite_animation() -> void:
 			# TODO setup slow swimming animation
 			pass
 		State.RESTING, State.IDLE:
-			if _anim_player.current_animation == SWIM and _anim_player.is_playing():
+			if _anim_player.is_playing():
 				_anim_player.stop()
 			_idle_animation(_current_state == State.RESTING)
+
+
+func _calculate_state() -> void:
+	if _stat_energy.get_stat_value() <= 0 and _stat_hunger.get_stat_value() > 0:
+		_set_current_state(State.RESTING)
+	elif _stat_hunger.get_stat_value() <= 0:
+		_set_current_state(State.CHASING)
+	else:
+		_set_current_state(State.IDLE)
+
+
+func _set_current_state(new_state: State) -> void:
+	var old_state: State = _current_state
+	_current_state = new_state
+	SignalBus.on_fish_state_changed.emit(self, old_state, _current_state)
 
 
 func _calculate_resources_spent() -> void:
@@ -260,6 +278,9 @@ func _calculate_resources_spent() -> void:
 
 
 func _calculate_feed_target() -> void:
+	if _current_state != State.CHASING:
+		return
+
 	var feed: Array = get_tree().get_nodes_in_group(Constants.GRP_FEED)
 
 	if feed.is_empty():
@@ -284,21 +305,6 @@ func _calculate_feed_target() -> void:
 
 func _filter_feed_by_dl(f: Feed) -> bool:
 	return f.get_depth_layer() == _current_depth_layer
-
-
-func _reset_feed_target() -> void:
-	if _current_state != State.CHASING:
-		return
-	_calculate_feed_target()
-
-
-func _reset_state() -> void:
-	if _stat_energy.get_stat_value() <= 0 and _stat_hunger.get_stat_value() > 0:
-		_current_state = State.RESTING
-	elif _stat_hunger.get_stat_value() <= 0:
-		_current_state = State.CHASING
-	else:
-		_current_state = State.IDLE
 
 
 func _set_clickable(is_clickable: bool) -> void:
@@ -436,20 +442,19 @@ func _on_mouth_area_body_entered(body: Node2D) -> void:
 		_stat_hunger.increase(f.nutri_value)
 		_stat_energy.increase(f.nutri_value * 0.5)
 		_stat_health.increase(f.nutri_value * 0.75)
-		if _current_state == State.CHASING:
-			_reset_state()
+		_calculate_state()
 		if _current_feed_target == f:
 			_current_feed_target = null
 
 
 func _on_feed_spawned() -> void:
-	_reset_feed_target()
+	_calculate_feed_target()
 
 
 func _on_feed_picked(by: Fish) -> void:
 	if by == self:
 		return
-	_reset_feed_target()
+	_calculate_feed_target()
 
 
 func _on_mouse_entered() -> void:
