@@ -186,21 +186,22 @@ func _idle_animation(is_resting: bool) -> void:
 	if _is_idling:
 		return
 	_is_idling = true
+	var idle_time: float = randf_range(_wait_min_max.x, _wait_min_max.y)
+	var initial_tween_time: float = randf_range(0.25, 0.55)
+	var tween_down_time: float = randf_range(0.25, 0.55)
+	var tween_up_time = randf_range(0.25, 0.55)
+	var tween_loops: int = ceili((idle_time - initial_tween_time) / (tween_down_time + tween_up_time))
 	_fish_look_at(Vector2.ZERO)
 	await Util.wait(ROTATION_TIME)
-	ObjectFactory.spawn_mouth_bubbles(_mbe_marker.global_position, scale, _transient_children)
-	_idle_tween = create_tween().set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_BOUNCE)
-	_idle_tween.tween_property(self, "global_position:y", global_position.y - 1, randf_range(0.25, 0.55))
-	_idle_tween.set_loops()
-	_idle_tween.tween_property(self, "global_position:y", global_position.y + 2, randf_range(0.25, 0.55))
-	_idle_tween.tween_property(self, "global_position:y", global_position.y - 2, randf_range(0.25, 0.55))
-
 	if is_resting:
 		_play_emote(EmoteName.SLEEPING)
-		await Util.wait(randf_range(_wait_min_max.x, _wait_min_max.y))
-		_end_idle()
-		_stat_energy.increase(1000) # TODO make this depend on the time rested
-		_stop_emote(EmoteName.SLEEPING)
+	ObjectFactory.spawn_mouth_bubbles(_mbe_marker.global_position, scale, _transient_children)
+	_idle_tween = create_tween().set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_BOUNCE)
+	_idle_tween.tween_property(self, "global_position:y", global_position.y - 1, initial_tween_time)
+	_idle_tween.set_loops(tween_loops)
+	_idle_tween.tween_property(self, "global_position:y", global_position.y + 2, tween_down_time)
+	_idle_tween.tween_property(self, "global_position:y", global_position.y - 2, tween_up_time)
+	_idle_tween.finished.connect(_on_idle_tween_finished.bind(is_resting))
 
 
 func _end_idle() -> void:
@@ -422,6 +423,13 @@ func _on_sv_maxed_out(s: StatusValue.StatusType) -> void:
 			pass
 		StatusValue.StatusType.HUNGER, StatusValue.StatusType.ENERGY:
 			_current_state = State.IDLE
+
+func _on_idle_tween_finished(is_resting: bool) -> void:
+	_end_idle()
+	print(self.name + " ended idle")
+	if is_resting:
+		_stat_energy.increase(1000) # TODO make this depend on the time rested
+		_stop_emote(EmoteName.SLEEPING)
 
 
 func _on_avoidance_area_body_entered(body: Node2D) -> void:
