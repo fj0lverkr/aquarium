@@ -51,6 +51,10 @@ var _swim_speed: float = 100.0
 var _energy_coefficient: float = 1
 @export
 var _hunger_coefficient: float = 0.25
+@export
+var _idle_frame_index: int = 0
+@export
+var _sleep_frame_index: int = 3
 
 
 var _stat_health: StatusValue
@@ -181,7 +185,7 @@ func _get_corrected_scale(target: Vector2) -> Vector2:
 	return corrected_scale
 
 
-func _idle_animation(is_resting: bool) -> void:
+func _idle_animation() -> void:
 	if _is_idling:
 		return
 	_is_idling = true
@@ -192,15 +196,16 @@ func _idle_animation(is_resting: bool) -> void:
 	var tween_loops: int = ceili((idle_time - initial_tween_time) / (tween_down_time + tween_up_time))
 	_fish_look_at(Vector2.ZERO)
 	await Util.wait(ROTATION_TIME)
-	if is_resting:
+	if _current_state == State.RESTING:
+		_sprite.frame = _sleep_frame_index
 		_play_emote(EmoteName.SLEEPING)
 	ObjectFactory.spawn_mouth_bubbles(_mbe_marker.global_position, scale, _transient_children)
 	_idle_tween = create_tween().set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_BOUNCE)
+	_idle_tween.finished.connect(_on_idle_tween_finished)
 	_idle_tween.tween_property(self, "global_position:y", global_position.y - 1, initial_tween_time)
 	_idle_tween.set_loops(tween_loops)
 	_idle_tween.tween_property(self, "global_position:y", global_position.y + 2, tween_down_time)
 	_idle_tween.tween_property(self, "global_position:y", global_position.y - 2, tween_up_time)
-	_idle_tween.finished.connect(_on_idle_tween_finished.bind(is_resting))
 
 
 func _end_idle() -> void:
@@ -209,7 +214,9 @@ func _end_idle() -> void:
 			c.emitting = false
 	_idle_tween.kill()
 	_is_idling = false
-	print("%s ended %s..." % [_name, "resting" if _current_state == State.RESTING else "idling"])
+	var activity: String = "resting" if _current_state == State.RESTING else "idling"
+	print("%s %s" % [_name, _current_state])
+	print("%s ended %s..." % [_name, activity])
 	_calculate_state()
 
 
@@ -242,6 +249,9 @@ func _flip_debug_label(flip: bool) -> void:
 
 
 func _handle_current_state() -> void:
+	if _current_state != State.RESTING:
+		_sprite.frame = _idle_frame_index
+
 	match _current_state:
 		State.CHASING, State.FLEEING:
 			if _anim_player.current_animation == SWIM and _anim_player.is_playing():
@@ -254,7 +264,7 @@ func _handle_current_state() -> void:
 		State.RESTING, State.IDLE:
 			if _anim_player.is_playing():
 				_anim_player.stop()
-			_idle_animation(_current_state == State.RESTING)
+			_idle_animation()
 
 
 func _calculate_state() -> void:
@@ -435,8 +445,8 @@ func _on_sv_maxed_out(s: StatusValue.StatusType) -> void:
 			_current_state = State.IDLE
 
 
-func _on_idle_tween_finished(is_resting: bool) -> void:
-	if is_resting:
+func _on_idle_tween_finished() -> void:
+	if _current_state == State.RESTING:
 		_stat_energy.increase(1000) # TODO make this depend on the time rested
 		_stop_emote(EmoteName.SLEEPING)
 	_end_idle()
