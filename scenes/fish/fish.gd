@@ -82,11 +82,10 @@ func _ready() -> void:
 		SignalBus.on_feed_picked.connect(_on_feed_picked)
 		SignalBus.on_object_clicked.connect(_on_object_clicked)
 		call_deferred("_setup_debug")
+		_calculate_state()
 
 
 func _physics_process(_delta: float) -> void:
-	_handle_current_state()
-
 	if TankManager.get_debug_mode():
 		_set_debug_label()
 
@@ -210,6 +209,8 @@ func _end_idle() -> void:
 			c.emitting = false
 	_idle_tween.kill()
 	_is_idling = false
+	print("%s ended %s..." % [_name, "resting" if _current_state == State.RESTING else "idling"])
+	_calculate_state()
 
 
 func _wandering() -> void:
@@ -257,12 +258,21 @@ func _handle_current_state() -> void:
 
 
 func _calculate_state() -> void:
-	if _stat_energy.get_stat_value() <= 0 and _stat_hunger.get_stat_value() > 0:
-		_set_current_state(State.RESTING)
-	elif _stat_hunger.get_stat_value() <= 0:
-		_set_current_state(State.CHASING)
-	else:
-		_set_current_state(State.IDLE)
+	match _current_state:
+		State.IDLE:
+			var dice_roll: float = randf()
+			if dice_roll >= 0.5:
+				_current_state = State.IDLE
+			else:
+				_current_state = State.RESTING
+		State.RESTING:
+			var dice_roll: float = randf()
+			if dice_roll >= 0.5:
+				_current_state = State.RESTING
+			else:
+				_current_state = State.IDLE
+
+	_handle_current_state()
 
 
 func _set_current_state(new_state: State) -> void:
@@ -424,12 +434,12 @@ func _on_sv_maxed_out(s: StatusValue.StatusType) -> void:
 		StatusValue.StatusType.HUNGER, StatusValue.StatusType.ENERGY:
 			_current_state = State.IDLE
 
+
 func _on_idle_tween_finished(is_resting: bool) -> void:
-	_end_idle()
-	print(self.name + " ended idle")
 	if is_resting:
 		_stat_energy.increase(1000) # TODO make this depend on the time rested
 		_stop_emote(EmoteName.SLEEPING)
+	_end_idle()
 
 
 func _on_avoidance_area_body_entered(body: Node2D) -> void:
