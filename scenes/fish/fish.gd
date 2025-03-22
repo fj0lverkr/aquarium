@@ -71,7 +71,7 @@ var _distance_traveled: float = 0.0
 var _current_feed_target: Feed = null
 var _idle_tween: Tween
 var _is_idling: bool = false
-var _swim_destination: Vector2
+var _swim_destination: Vector2 = Vector2(-1, -1)
 
 
 func _ready() -> void:
@@ -152,12 +152,12 @@ func _fish_look_at(where: Vector2) -> void:
 		direction = Vector2.RIGHT if _prev_vel_x >= 0.0 else Vector2.LEFT
 		angle = (direction).angle()
 		tween.tween_property(self, "rotation", lerp_angle(rotation, angle, 1.0), ROTATION_TIME)
-		if direction == Vector2.LEFT:
-			_correct_orientation()
 	else:
 		direction = where
 		angle = (where - global_position).angle()
 		look_at(direction)
+	if direction.x < 0:
+		_correct_orientation()
 
 
 func _correct_orientation() -> void:
@@ -188,12 +188,11 @@ func _get_corrected_scale(target: Vector2) -> Vector2:
 
 
 func _handle_movement() -> void:
+	if velocity.x != 0.0 and _prev_vel_x != velocity.x:
+		_prev_vel_x = velocity.x
 	_set_swim_destination()
-	if _swim_destination == Vector2.ZERO:
-		return
-	if _swim_destination != position:
+	if velocity != Vector2.ZERO and _current_state == State.WANDERING:
 		_fish_look_at(_swim_destination)
-		_correct_orientation()
 		var distance: Vector2 = _swim_destination - position
 		if distance.abs() < Vector2(1.0, 1.0):
 			position = _swim_destination
@@ -213,7 +212,7 @@ func _idle_animation() -> void:
 	var tween_down_time: float = randf_range(0.25, 0.55)
 	var tween_up_time = randf_range(0.25, 0.55)
 	var tween_loops: int = ceili((idle_time - initial_tween_time) / (tween_down_time + tween_up_time))
-	_fish_look_at(Vector2.ZERO)
+	_fish_look_at(Vector2.ZERO) # looking at will not take the direction into account when using it in state resting or idle
 	await Util.wait(ROTATION_TIME)
 	if _current_state == State.RESTING:
 		_sprite.frame = _sleep_frame_index
@@ -239,11 +238,13 @@ func _end_idle() -> void:
 func _set_swim_destination() -> void:
 	match _current_state:
 		State.WANDERING:
-			if _swim_destination != position and velocity != Vector2.ZERO:
-				return
-			_swim_destination = TankManager.get_random_point_in_tank()
-			if _swim_destination == Vector2.ZERO:
-				_swim_destination = position
+			if _swim_destination == position or _swim_destination == Vector2(-1, -1):
+				print("%s setting new swim destination" % _name)
+				_swim_destination = TankManager.get_random_point_in_tank()
+				if _swim_destination == Vector2.ZERO:
+					_swim_destination = position
+		_:
+			pass
 
 
 func _play_emote(emote_name: EmoteName) -> void:
@@ -301,13 +302,13 @@ func _calculate_state() -> void:
 	match _current_state:
 		State.IDLE, State.WANDERING:
 			var dice_roll: float = randf()
-			if dice_roll >= 0.30:
+			if dice_roll >= 0.50:
 				_set_current_state(State.IDLE)
 			else:
 				_set_current_state(State.WANDERING)
 		State.RESTING:
 			var dice_roll: float = randf()
-			if dice_roll >= 0.45:
+			if dice_roll >= 0.50:
 				_set_current_state(State.WANDERING)
 			else:
 				_set_current_state(State.IDLE)
