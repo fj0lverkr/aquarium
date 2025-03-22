@@ -57,8 +57,8 @@ func _set_pebble_spawner() -> void:
 # Public methods
 
 func get_random_point_in_tank() -> Vector2:
-	var random_x: float = randf_range(0.0, _size.x / _objects_max_scale)
-	var random_y: float = randf_range(0.0, _size.y / _objects_max_scale)
+	var random_x: float = randf_range(0.0, _size.x)
+	var random_y: float = randf_range(0.0, _size.y)
 	return Vector2(random_x, random_y)
 
 

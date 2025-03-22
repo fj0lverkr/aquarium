@@ -46,7 +46,7 @@ var _name: String = "Unnamed fish"
 @export
 var _wait_min_max: Vector2 = Vector2(2.0, 10.0)
 @export
-var _swim_speed: float = 5.0
+var _swim_speed: float = 100.0
 @export
 var _energy_coefficient: float = 1
 @export
@@ -71,6 +71,7 @@ var _distance_traveled: float = 0.0
 var _current_feed_target: Feed = null
 var _idle_tween: Tween
 var _is_idling: bool = false
+var _swim_destination: Vector2
 
 
 func _ready() -> void:
@@ -92,8 +93,7 @@ func _ready() -> void:
 func _physics_process(_delta: float) -> void:
 	if TankManager.get_debug_mode():
 		_set_debug_label()
-
-	move_and_slide()
+	_handle_movement()
 
 
 func _setup() -> void:
@@ -187,6 +187,23 @@ func _get_corrected_scale(target: Vector2) -> Vector2:
 	return corrected_scale
 
 
+func _handle_movement() -> void:
+	_set_swim_destination()
+	if _swim_destination == Vector2.ZERO:
+		return
+	if _swim_destination != position:
+		_fish_look_at(_swim_destination)
+		_correct_orientation()
+		var distance: Vector2 = _swim_destination - position
+		if distance.abs() < Vector2(1.0, 1.0):
+			position = _swim_destination
+		else:
+			velocity = distance.normalized() * (_swim_speed if _current_state != State.WANDERING else _swim_speed / 2)
+			move_and_slide()
+	else:
+		_calculate_state()
+
+
 func _idle_animation() -> void:
 	if _is_idling:
 		return
@@ -216,16 +233,17 @@ func _end_idle() -> void:
 			c.emitting = false
 	_idle_tween.kill()
 	_is_idling = false
-	var activity: String = "resting" if _current_state == State.RESTING else "idling"
-	print("%s %s" % [_name, _current_state])
-	print("%s ended %s..." % [_name, activity])
 	_calculate_state()
 
 
-func _wandering() -> void:
-	var destination: Vector2 = TankManager.get_random_point_in_tank()
-	var distance: Vector2 = destination - global_position
-	velocity = distance * _swim_speed
+func _set_swim_destination() -> void:
+	match _current_state:
+		State.WANDERING:
+			if _swim_destination != position and velocity != Vector2.ZERO:
+				return
+			_swim_destination = TankManager.get_random_point_in_tank()
+			if _swim_destination == Vector2.ZERO:
+				_swim_destination = position
 
 
 func _play_emote(emote_name: EmoteName) -> void:
@@ -262,12 +280,17 @@ func _handle_current_state() -> void:
 			if _anim_player.current_animation == SWIM and _anim_player.is_playing():
 				return
 			_anim_player.current_animation = SWIM
+			_anim_player.speed_scale = 1.0
 			_anim_player.play()
 		State.SEARCHING:
 			pass
 		State.WANDERING:
-			# TODO setup slow swimming animation
-			_wandering()
+			if _anim_player.current_animation == SWIM and _anim_player.is_playing():
+				return
+			_anim_player.current_animation = SWIM
+			_anim_player.speed_scale = 0.5
+			_anim_player.play()
+			_set_swim_destination()
 		State.RESTING, State.IDLE:
 			if _anim_player.is_playing():
 				_anim_player.stop()
@@ -278,16 +301,16 @@ func _calculate_state() -> void:
 	match _current_state:
 		State.IDLE, State.WANDERING:
 			var dice_roll: float = randf()
-			if dice_roll >= 0.5:
-				_current_state = State.IDLE
+			if dice_roll >= 0.30:
+				_set_current_state(State.IDLE)
 			else:
-				_current_state = State.WANDERING
+				_set_current_state(State.WANDERING)
 		State.RESTING:
 			var dice_roll: float = randf()
-			if dice_roll >= 0.5:
-				_current_state = State.WANDERING
+			if dice_roll >= 0.45:
+				_set_current_state(State.WANDERING)
 			else:
-				_current_state = State.IDLE
+				_set_current_state(State.IDLE)
 	_handle_current_state()
 
 
