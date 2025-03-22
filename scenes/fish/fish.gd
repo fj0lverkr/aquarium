@@ -46,7 +46,7 @@ var _name: String = "Unnamed fish"
 @export
 var _wait_min_max: Vector2 = Vector2(2.0, 10.0)
 @export
-var _swim_speed: float = 100.0
+var _swim_speed: float = 5.0
 @export
 var _energy_coefficient: float = 1
 @export
@@ -92,6 +92,8 @@ func _ready() -> void:
 func _physics_process(_delta: float) -> void:
 	if TankManager.get_debug_mode():
 		_set_debug_label()
+
+	move_and_slide()
 
 
 func _setup() -> void:
@@ -221,7 +223,10 @@ func _end_idle() -> void:
 
 
 func _wandering() -> void:
-	pass
+	var destination: Vector2 = TankManager.get_random_point_in_tank()
+	var distance: Vector2 = destination - global_position
+	velocity = distance * _swim_speed
+
 
 func _play_emote(emote_name: EmoteName) -> void:
 	var e: Sprite2D = _emotes.get(emote_name)
@@ -258,9 +263,11 @@ func _handle_current_state() -> void:
 				return
 			_anim_player.current_animation = SWIM
 			_anim_player.play()
-		State.SEARCHING, State.WANDERING:
-			# TODO setup slow swimming animation
+		State.SEARCHING:
 			pass
+		State.WANDERING:
+			# TODO setup slow swimming animation
+			_wandering()
 		State.RESTING, State.IDLE:
 			if _anim_player.is_playing():
 				_anim_player.stop()
@@ -269,19 +276,18 @@ func _handle_current_state() -> void:
 
 func _calculate_state() -> void:
 	match _current_state:
-		State.IDLE:
+		State.IDLE, State.WANDERING:
 			var dice_roll: float = randf()
 			if dice_roll >= 0.5:
 				_current_state = State.IDLE
 			else:
-				_current_state = State.RESTING
+				_current_state = State.WANDERING
 		State.RESTING:
 			var dice_roll: float = randf()
 			if dice_roll >= 0.5:
-				_current_state = State.RESTING
+				_current_state = State.WANDERING
 			else:
 				_current_state = State.IDLE
-
 	_handle_current_state()
 
 

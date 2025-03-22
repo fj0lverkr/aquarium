@@ -13,7 +13,9 @@ func get_current_tank() -> Tank:
 
 
 func get_random_point_in_tank() -> Vector2:
-	return _current_tank.get_random_point_in_tank()
+	if _current_tank:
+		return _current_tank.get_random_point_in_tank()
+	return Vector2.ZERO
 
 
 func get_object_scales() -> Dictionary:
