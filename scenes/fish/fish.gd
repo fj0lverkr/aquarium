@@ -75,6 +75,8 @@ var _is_moving: bool = false
 var _swim_destination: Vector2 = Vector2(-1, -1)
 
 
+# OVERRIDDEN FUNCTIONS
+
 func _ready() -> void:
 	SignalBus.on_tank_changed.connect(_on_tank_changed)
 	for e: Sprite2D in _emotes.values():
@@ -97,6 +99,8 @@ func _physics_process(_delta: float) -> void:
 	if _current_state != State.RESTING and _current_state != State.IDLE:
 		_handle_movement()
 
+
+# SETUP FUNCTIONS
 
 func _setup() -> void:
 	var c: Array[StatusValue] = _status_collection.get_collection()
@@ -126,16 +130,7 @@ func _setup_debug() -> void:
 	_debug_label.visible = TankManager.get_debug_mode()
 
 
-func _check_minimum_stats_present() -> void:
-	if not _stat_health or not _stat_hunger or not _stat_energy:
-		print("Entity is missing one or more required stats, freeing...")
-		queue_free()
-
-
-func _get_fish_size() -> float:
-	var s: Vector2 = _collider.shape.get_rect().size * scale
-	return s.x if s.x > s.y else s.y
-
+# MOVEMENT FUNCTIONS
 
 func _set_depth() -> void:
 	var roll: int = Util.dice_roll(6)
@@ -182,17 +177,6 @@ func _correct_orientation() -> void:
 	scale = new_scale
 
 
-func _is_facing_right() -> bool:
-	return _marker_mouth_eat.global_position.x > global_position.x or velocity.x > 0
-
-
-func _get_corrected_scale(target: Vector2) -> Vector2:
-	var corrected_scale: Vector2 = Vector2.ZERO
-	corrected_scale.x = target.x if scale.x >= 0 else -target.x
-	corrected_scale.y = target.y if scale.y >= 0 else -target.y
-	return corrected_scale
-
-
 func _handle_movement() -> void:
 	if velocity.x != 0.0 and _prev_vel_x != velocity.x:
 		_prev_vel_x = velocity.x
@@ -209,6 +193,58 @@ func _handle_movement() -> void:
 	else:
 		_calculate_state()
 
+
+func _set_swim_destination() -> void:
+	match _current_state:
+		State.WANDERING:
+			if _swim_destination == position or _swim_destination == Vector2(-1, -1):
+				_swim_destination = TankManager.get_random_point_in_tank()
+				_set_depth()
+				if _swim_destination == Vector2.ZERO:
+					_swim_destination = position
+		_:
+			pass
+
+
+func _change_depth(target_depth_layer: int) -> void:
+	if _current_depth_layer == target_depth_layer:
+		return
+
+	var tween: Tween
+	var target_scale: Vector2 = Vector2.ONE
+	var tween_time: float = DEPTH_TIME
+	var wait_time: float = randf_range(0.1, 0.15)
+	var target_modulate: Color = Constants.COL_DEPTH_MOD[target_depth_layer]
+
+	if target_depth_layer > _tank_depth_layers:
+		target_depth_layer = _tank_depth_layers
+	if target_depth_layer == 0:
+		target_depth_layer = 1
+
+	target_scale.x = _max_scale.x / target_depth_layer
+	target_scale.y = _max_scale.y / target_depth_layer
+	if target_scale.x < _min_scale.x or target_scale.y < _min_scale.y:
+		target_scale = _min_scale
+
+	await Util.wait(wait_time)
+	target_scale = _get_corrected_scale(target_scale)
+
+	if _current_depth_layer == -1:
+		scale = target_scale
+		_sprite.self_modulate = target_modulate
+	else:
+		tween = create_tween()
+		tween_time *= absf(_current_depth_layer - target_depth_layer)
+		tween.tween_property(self, "scale", target_scale, tween_time)
+		tween.parallel().tween_property(_sprite, "self_modulate", target_modulate, tween_time)
+
+	_current_depth_layer = target_depth_layer
+	call_deferred("_defer_on_depth_changed")
+	Util.set_depth_collision(self, _current_depth_layer)
+	Util.set_depth_collision_mask(_mouth_area, _current_depth_layer)
+
+
+# ANIMATION FUNCTIONS
 
 func _idle_animation() -> void:
 	if _is_idling:
@@ -242,17 +278,6 @@ func _end_idle() -> void:
 	_calculate_state()
 
 
-func _set_swim_destination() -> void:
-	match _current_state:
-		State.WANDERING:
-			if _swim_destination == position or _swim_destination == Vector2(-1, -1):
-				_swim_destination = TankManager.get_random_point_in_tank()
-				if _swim_destination == Vector2.ZERO:
-					_swim_destination = position
-		_:
-			pass
-
-
 func _play_emote(emote_name: EmoteName) -> void:
 	var e: Sprite2D = _emotes.get(emote_name)
 	e.show()
@@ -271,12 +296,7 @@ func _flip_emotes(e_flip_v: bool, e_flip_h: bool) -> void:
 		e.flip_v = e_flip_v
 
 
-func _flip_debug_label(flip: bool) -> void:
-	var half_label = _debug_label.size.x / 2
-	_debug_label.position.x = 0
-	_debug_label.scale.x = -1 if flip else 1
-	_debug_label.position.x += half_label if flip else -half_label
-
+# STATE FUNCTIONS
 
 func _handle_current_state() -> void:
 	if _current_state != State.RESTING:
@@ -328,6 +348,8 @@ func _set_current_state(new_state: State) -> void:
 	SignalBus.on_fish_state_changed.emit(self, old_state, _current_state)
 
 
+# RESOURCE FUNCTIONS
+
 func _calculate_resources_spent() -> void:
 	var energy_spent: float = _distance_traveled * _energy_coefficient
 	var hunger_gained: float = _distance_traveled * _hunger_coefficient
@@ -361,50 +383,57 @@ func _calculate_feed_target() -> void:
 		_change_depth(_current_feed_target.get_depth_layer())
 
 
-func _filter_feed_by_dl(f: Feed) -> bool:
-	return f.get_depth_layer() == _current_depth_layer
+# PHYSICS FUNCTIONS
+
+func _process_slide_collisions():
+	var num_col: int = get_slide_collision_count()
+	if num_col == 0:
+		return
+
+	for i: int in num_col:
+		var sc: KinematicCollision2D = get_slide_collision(i)
+		if TankManager.get_pebble_body_rids().has(sc.get_collider_rid()):
+			# Here we can interact with the pebbles if needed.
+			pass
+
+
+# HELPER FUNCTIONS
+
+func _flip_debug_label(flip: bool) -> void:
+	var half_label = _debug_label.size.x / 2
+	_debug_label.position.x = 0
+	_debug_label.scale.x = -1 if flip else 1
+	_debug_label.position.x += half_label if flip else -half_label
+
+
+func _check_minimum_stats_present() -> void:
+	if not _stat_health or not _stat_hunger or not _stat_energy:
+		print("Entity is missing one or more required stats, freeing...")
+		queue_free()
+
+
+func _get_fish_size() -> float:
+	var s: Vector2 = _collider.shape.get_rect().size * scale
+	return s.x if s.x > s.y else s.y
 
 
 func _set_clickable(is_clickable: bool) -> void:
 	SignalBus.on_mouse_over_object_changed.emit(self if is_clickable else null)
 
 
-func _change_depth(target_depth_layer: int) -> void:
-	if _current_depth_layer == target_depth_layer:
-		return
+func _filter_feed_by_dl(f: Feed) -> bool:
+	return f.get_depth_layer() == _current_depth_layer
 
-	var tween: Tween
-	var target_scale: Vector2 = Vector2.ONE
-	var tween_time: float = DEPTH_TIME
-	var wait_time: float = randf_range(0.1, 0.15)
-	var target_modulate: Color = Constants.COL_DEPTH_MOD[target_depth_layer]
 
-	if target_depth_layer > _tank_depth_layers:
-		target_depth_layer = _tank_depth_layers
-	if target_depth_layer == 0:
-		target_depth_layer = 1
+func _is_facing_right() -> bool:
+	return _marker_mouth_eat.global_position.x > global_position.x or velocity.x > 0
 
-	target_scale.x = _max_scale.x / target_depth_layer
-	target_scale.y = _max_scale.y / target_depth_layer
-	if target_scale.x < _min_scale.x or target_scale.y < _min_scale.y:
-		target_scale = _min_scale
 
-	await Util.wait(wait_time)
-	target_scale = _get_corrected_scale(target_scale)
-
-	if _current_depth_layer == -1:
-		scale = target_scale
-		_sprite.self_modulate = target_modulate
-	else:
-		tween = create_tween()
-		tween_time *= absf(_current_depth_layer - target_depth_layer)
-		tween.tween_property(self, "scale", target_scale, tween_time)
-		tween.parallel().tween_property(_sprite, "self_modulate", target_modulate, tween_time)
-
-	_current_depth_layer = target_depth_layer
-	call_deferred("_defer_on_depth_changed")
-	Util.set_depth_collision(self, _current_depth_layer)
-	Util.set_depth_collision_mask(_mouth_area, _current_depth_layer)
+func _get_corrected_scale(target: Vector2) -> Vector2:
+	var corrected_scale: Vector2 = Vector2.ZERO
+	corrected_scale.x = target.x if scale.x >= 0 else -target.x
+	corrected_scale.y = target.y if scale.y >= 0 else -target.y
+	return corrected_scale
 
 
 func _is_body_on_same_depth_layer(body: Node) -> bool:
@@ -422,18 +451,6 @@ func _is_area_on_same_depth_layer(area: Area2D) -> bool:
 
 func _defer_on_depth_changed() -> void:
 	SignalBus.on_object_depth_changed.emit(self)
-
-
-func _process_slide_collisions():
-	var num_col: int = get_slide_collision_count()
-	if num_col == 0:
-		return
-
-	for i: int in num_col:
-		var sc: KinematicCollision2D = get_slide_collision(i)
-		if TankManager.get_pebble_body_rids().has(sc.get_collider_rid()):
-			# Here we can interact with the pebbles if needed.
-			pass
 
 
 # PUBLIC FUNCTIONS
