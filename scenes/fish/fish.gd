@@ -71,6 +71,7 @@ var _distance_traveled: float = 0.0
 var _current_feed_target: Feed = null
 var _idle_tween: Tween
 var _is_idling: bool = false
+var _is_moving: bool = false
 var _swim_destination: Vector2 = Vector2(-1, -1)
 
 
@@ -93,7 +94,8 @@ func _ready() -> void:
 func _physics_process(_delta: float) -> void:
 	if TankManager.get_debug_mode():
 		_set_debug_label()
-	_handle_movement()
+	if _current_state != State.RESTING and _current_state != State.IDLE:
+		_handle_movement()
 
 
 func _setup() -> void:
@@ -156,15 +158,15 @@ func _fish_look_at(where: Vector2) -> void:
 		direction = where
 		angle = (where - global_position).angle()
 		look_at(direction)
-	if direction.x < 0:
-		_correct_orientation()
+
+	_correct_orientation()
 
 
 func _correct_orientation() -> void:
 	var new_scale: Vector2
 	var abs_scale: Vector2 = Vector2(absf(scale.x), absf(scale.y))
 
-	if velocity.x > 0.0 or (velocity.x == 0.0 and velocity.y == 0.0 and _prev_vel_x > 0.0):
+	if _is_facing_right():
 		new_scale = abs_scale
 		_flip_emotes(false, false)
 		if TankManager.get_debug_mode():
@@ -180,6 +182,10 @@ func _correct_orientation() -> void:
 	scale = new_scale
 
 
+func _is_facing_right() -> bool:
+	return _marker_mouth_eat.global_position.x > global_position.x or velocity.x > 0
+
+
 func _get_corrected_scale(target: Vector2) -> Vector2:
 	var corrected_scale: Vector2 = Vector2.ZERO
 	corrected_scale.x = target.x if scale.x >= 0 else -target.x
@@ -191,11 +197,12 @@ func _handle_movement() -> void:
 	if velocity.x != 0.0 and _prev_vel_x != velocity.x:
 		_prev_vel_x = velocity.x
 	_set_swim_destination()
-	if velocity != Vector2.ZERO and _current_state == State.WANDERING:
+	if _is_moving and _current_state == State.WANDERING:
 		_fish_look_at(_swim_destination)
 		var distance: Vector2 = _swim_destination - position
-		if distance.abs() < Vector2(1.0, 1.0):
+		if distance.abs() < Vector2(1.0, 1.0) and _is_moving:
 			position = _swim_destination
+			_is_moving = false
 		else:
 			velocity = distance.normalized() * (_swim_speed if _current_state != State.WANDERING else _swim_speed / 2)
 			move_and_slide()
@@ -239,7 +246,6 @@ func _set_swim_destination() -> void:
 	match _current_state:
 		State.WANDERING:
 			if _swim_destination == position or _swim_destination == Vector2(-1, -1):
-				print("%s setting new swim destination" % _name)
 				_swim_destination = TankManager.get_random_point_in_tank()
 				if _swim_destination == Vector2.ZERO:
 					_swim_destination = position
@@ -291,7 +297,6 @@ func _handle_current_state() -> void:
 			_anim_player.current_animation = SWIM
 			_anim_player.speed_scale = 0.5
 			_anim_player.play()
-			_set_swim_destination()
 		State.RESTING, State.IDLE:
 			if _anim_player.is_playing():
 				_anim_player.stop()
@@ -306,10 +311,12 @@ func _calculate_state() -> void:
 				_set_current_state(State.IDLE)
 			else:
 				_set_current_state(State.WANDERING)
+				_is_moving = true
 		State.RESTING:
 			var dice_roll: float = randf()
-			if dice_roll >= 0.50:
+			if dice_roll >= 0.40:
 				_set_current_state(State.WANDERING)
+				_is_moving = true
 			else:
 				_set_current_state(State.IDLE)
 	_handle_current_state()
@@ -534,5 +541,5 @@ func _on_object_clicked(o: Node2D) -> void:
 
 func _set_debug_label() -> void:
 	var z_in_tank: int = TankManager.get_current_tank().get_object_z_index(self)
-	var debug_string: String = "DL: %s, Z: %s" % [_current_depth_layer, z_in_tank]
+	var debug_string: String = "State: %s DL: %s, Z: %s" % [State.keys().get(_current_state), _current_depth_layer, z_in_tank]
 	_debug_label.text = debug_string

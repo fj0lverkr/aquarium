@@ -42,6 +42,8 @@ func get_cursor_over_object() -> Node2D:
 
 
 func get_debug_mode() -> bool:
+	if not _current_tank:
+		return false
 	return _current_tank.get_debug_mode()
 
 
