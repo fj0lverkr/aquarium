@@ -134,7 +134,7 @@ func _setup_debug() -> void:
 
 func _set_depth() -> void:
 	var roll: int = Util.dice_roll(6)
-	if roll < 5:
+	if roll < 4:
 		return
 	var dl: int = randi_range(1, _tank_depth_layers)
 	_change_depth(dl)
