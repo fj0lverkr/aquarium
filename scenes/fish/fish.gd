@@ -134,10 +134,15 @@ func _setup_debug() -> void:
 
 func _set_depth() -> void:
 	var roll: int = Util.dice_roll(6)
-	if roll < 4:
+	if roll < 0:
 		return
 	var dl: int = randi_range(1, _tank_depth_layers)
-	_change_depth(dl)
+	var distance: Vector2 = _swim_destination - position
+	var ref: float = absf(distance.x) if absf(distance.x) > absf(distance.y) else absf(distance.y)
+	var swim_time = _swim_speed / ref * (2 if _current_state == State.WANDERING else 1)
+	var depth_time = DEPTH_TIME * abs(dl - _current_depth_layer)
+	if swim_time >= depth_time:
+		_change_depth(dl)
 
 
 func _fish_look_at(where: Vector2) -> void:
@@ -199,9 +204,9 @@ func _set_swim_destination() -> void:
 		State.WANDERING:
 			if _swim_destination == position or _swim_destination == Vector2(-1, -1):
 				_swim_destination = TankManager.get_random_point_in_tank()
-				_set_depth()
 				if _swim_destination == Vector2.ZERO:
 					_swim_destination = position
+				_set_depth()
 		_:
 			pass
 
