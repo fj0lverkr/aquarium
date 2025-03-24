@@ -11,6 +11,8 @@ const SWIM: String = "swim"
 
 const ROTATION_TIME: float = 0.4
 const DEPTH_TIME: float = 1.23
+const SLOW_SWIM_FACTOR: int = 2
+const SLOW_DIVE_FACTOR: int = 4
 
 const StatusType = StatusValue.StatusType
 
@@ -137,12 +139,7 @@ func _set_depth() -> void:
 	if roll < 0:
 		return
 	var dl: int = randi_range(1, _tank_depth_layers)
-	var distance: Vector2 = _swim_destination - position
-	var ref: float = absf(distance.x) if absf(distance.x) > absf(distance.y) else absf(distance.y)
-	var swim_time = _swim_speed / ref * (2 if _current_state == State.WANDERING else 1)
-	var depth_time = DEPTH_TIME * abs(dl - _current_depth_layer)
-	if swim_time >= depth_time:
-		_change_depth(dl)
+	_change_depth(dl)
 
 
 func _fish_look_at(where: Vector2) -> void:
@@ -151,9 +148,10 @@ func _fish_look_at(where: Vector2) -> void:
 
 	if _current_state == State.RESTING or _current_state == State.IDLE:
 		var tween: Tween = create_tween()
+		var rotation_time: float = ROTATION_TIME * SLOW_SWIM_FACTOR if _current_state == State.WANDERING else ROTATION_TIME
 		direction = Vector2.RIGHT if _prev_vel_x >= 0.0 else Vector2.LEFT
 		angle = (direction).angle()
-		tween.tween_property(self, "rotation", lerp_angle(rotation, angle, 1.0), ROTATION_TIME)
+		tween.tween_property(self, "rotation", lerp_angle(rotation, angle, 1.0), rotation_time)
 	else:
 		direction = where
 		angle = (where - global_position).angle()
@@ -185,21 +183,24 @@ func _correct_orientation() -> void:
 func _handle_movement() -> void:
 	if velocity.x != 0.0 and _prev_vel_x != velocity.x:
 		_prev_vel_x = velocity.x
-	_set_swim_destination()
-	if _is_moving and _current_state == State.WANDERING:
-		_fish_look_at(_swim_destination)
-		var distance: Vector2 = _swim_destination - position
-		if distance.abs() < Vector2(1.0, 1.0) and _is_moving:
-			position = _swim_destination
-			_is_moving = false
-		else:
-			velocity = distance.normalized() * (_swim_speed if _current_state != State.WANDERING else _swim_speed / 2)
-			move_and_slide()
+	if _is_moving:
+		match _current_state:
+			State.WANDERING:
+				_fish_look_at(_swim_destination)
+				var distance: Vector2 = _swim_destination - position
+				if distance.abs() < Vector2(1.0, 1.0) and _is_moving:
+					position = _swim_destination
+					_is_moving = false
+				else:
+					velocity = distance.normalized() * (_swim_speed if _current_state != State.WANDERING else _swim_speed / SLOW_SWIM_FACTOR)
+					move_and_slide()
 	else:
 		_calculate_state()
 
 
 func _set_swim_destination() -> void:
+	if _name == "Bib":
+		print("%s" % State.keys().get(_current_state))
 	match _current_state:
 		State.WANDERING:
 			if _swim_destination == position or _swim_destination == Vector2(-1, -1):
@@ -212,12 +213,12 @@ func _set_swim_destination() -> void:
 
 
 func _change_depth(target_depth_layer: int) -> void:
-	if _current_depth_layer == target_depth_layer:
+	if _current_depth_layer == target_depth_layer or target_depth_layer == 0:
 		return
 
 	var tween: Tween
 	var target_scale: Vector2 = Vector2.ONE
-	var tween_time: float = DEPTH_TIME
+	var tween_time: float = DEPTH_TIME * SLOW_DIVE_FACTOR if _current_state == State.WANDERING else ROTATION_TIME
 	var wait_time: float = randf_range(0.1, 0.15)
 	var target_modulate: Color = Constants.COL_DEPTH_MOD[target_depth_layer]
 
@@ -260,7 +261,7 @@ func _idle_animation() -> void:
 	var tween_down_time: float = randf_range(0.25, 0.55)
 	var tween_up_time = randf_range(0.25, 0.55)
 	var tween_loops: int = ceili((idle_time - initial_tween_time) / (tween_down_time + tween_up_time))
-	_fish_look_at(Vector2.ZERO) # looking at will not take the direction into account when using it in state resting or idle
+	_fish_look_at(Vector2.ZERO)
 	await Util.wait(ROTATION_TIME)
 	if _current_state == State.RESTING:
 		_sprite.frame = _sleep_frame_index
@@ -317,12 +318,15 @@ func _handle_current_state() -> void:
 		State.SEARCHING:
 			pass
 		State.WANDERING:
+			_is_moving = true
+			_set_swim_destination()
 			if _anim_player.current_animation == SWIM and _anim_player.is_playing():
 				return
 			_anim_player.current_animation = SWIM
 			_anim_player.speed_scale = 0.5
 			_anim_player.play()
 		State.RESTING, State.IDLE:
+			_is_moving = false
 			if _anim_player.is_playing():
 				_anim_player.stop()
 			_idle_animation()
@@ -336,12 +340,10 @@ func _calculate_state() -> void:
 				_set_current_state(State.IDLE)
 			else:
 				_set_current_state(State.WANDERING)
-				_is_moving = true
 		State.RESTING:
 			var dice_roll: float = randf()
 			if dice_roll >= 0.40:
 				_set_current_state(State.WANDERING)
-				_is_moving = true
 			else:
 				_set_current_state(State.IDLE)
 	_handle_current_state()
