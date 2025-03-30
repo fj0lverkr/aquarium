@@ -11,8 +11,9 @@ height = 24.0
 [sub_resource type="CircleShape2D" id="CircleShape2D_sp8bo"]
 radius = 2.2
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_jmc7n"]
-radius = 11.4017
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_iqpxq"]
+radius = 9.2
+height = 31.2
 
 [sub_resource type="Animation" id="Animation_gsisl"]
 length = 0.001
@@ -77,8 +78,9 @@ position = Vector2(0.200002, -3.57628e-07)
 shape = SubResource("CircleShape2D_sp8bo")
 
 [node name="CollisionShape2D" parent="AvoidanceArea" index="0"]
-position = Vector2(10.4, -3)
-shape = SubResource("CircleShape2D_jmc7n")
+position = Vector2(0.4, -2.4)
+rotation = -1.5708
+shape = SubResource("CapsuleShape2D_iqpxq")
 
 [node name="SleepEmote" parent="." index="7"]
 position = Vector2(8.2, -18.4)

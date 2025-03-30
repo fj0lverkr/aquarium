@@ -10,7 +10,7 @@ const EMOTES: Dictionary = {EmoteName.SLEEPING: "sleeping", }
 const SWIM: String = "swim"
 
 const ROTATION_TIME: float = 0.4
-const DEPTH_TIME: float = 1.23
+const DEPTH_TIME: float = 0.23
 
 const StatusType = StatusValue.StatusType
 
@@ -66,6 +66,7 @@ var _max_scale: Vector2
 var _tank_depth_layers: int
 var _current_depth_layer: int = -1
 var _current_state: State = State.IDLE
+var _previous_state: State = State.IDLE
 var _prev_vel_x: float = 0.0
 var _distance_traveled: float = 0.0
 var _current_feed_target: Feed = null
@@ -133,9 +134,6 @@ func _setup_debug() -> void:
 # MOVEMENT FUNCTIONS
 
 func _set_depth() -> void:
-	var roll: int = Util.dice_roll(6)
-	if roll < 0:
-		return
 	var dl: int = randi_range(1, _tank_depth_layers)
 	var distance: Vector2 = _swim_destination - position
 	var ref: float = absf(distance.x) if absf(distance.x) > absf(distance.y) else absf(distance.y)
@@ -186,14 +184,23 @@ func _handle_movement() -> void:
 	if velocity.x != 0.0 and _prev_vel_x != velocity.x:
 		_prev_vel_x = velocity.x
 	_set_swim_destination()
-	if _is_moving and _current_state == State.WANDERING:
+	if _is_moving and (_current_state == State.WANDERING or _current_state == State.CHASING or _current_state == State.FLEEING):
 		_fish_look_at(_swim_destination)
 		var distance: Vector2 = _swim_destination - position
 		if distance.abs() < Vector2(1.0, 1.0) and _is_moving:
 			position = _swim_destination
 			_is_moving = false
 		else:
-			velocity = distance.normalized() * (_swim_speed if _current_state != State.WANDERING else _swim_speed / 2)
+			var speed = _swim_speed
+			match _current_state:
+				State.WANDERING:
+					speed /= 2
+				State.FLEEING:
+					speed *= 2
+				_:
+					speed = speed
+					
+			velocity = distance.normalized() * speed
 			move_and_slide()
 	else:
 		_calculate_state()
@@ -204,6 +211,7 @@ func _set_swim_destination() -> void:
 		State.WANDERING:
 			if _swim_destination == position or _swim_destination == Vector2(-1, -1):
 				_swim_destination = TankManager.get_random_point_in_tank()
+				_swim_destination = TankManager.clamp_to_tank(_swim_destination, _get_fish_size())
 				if _swim_destination == Vector2.ZERO:
 					_swim_destination = position
 				_set_depth()
@@ -217,8 +225,7 @@ func _change_depth(target_depth_layer: int) -> void:
 
 	var tween: Tween
 	var target_scale: Vector2 = Vector2.ONE
-	var tween_time: float = DEPTH_TIME
-	var wait_time: float = randf_range(0.1, 0.15)
+	var tween_time: float = DEPTH_TIME * 10
 	var target_modulate: Color = Constants.COL_DEPTH_MOD[target_depth_layer]
 
 	if target_depth_layer > _tank_depth_layers:
@@ -231,7 +238,6 @@ func _change_depth(target_depth_layer: int) -> void:
 	if target_scale.x < _min_scale.x or target_scale.y < _min_scale.y:
 		target_scale = _min_scale
 
-	await Util.wait(wait_time)
 	target_scale = _get_corrected_scale(target_scale)
 
 	if _current_depth_layer == -1:
@@ -261,7 +267,7 @@ func _idle_animation() -> void:
 	var tween_up_time = randf_range(0.25, 0.55)
 	var tween_loops: int = ceili((idle_time - initial_tween_time) / (tween_down_time + tween_up_time))
 	_fish_look_at(Vector2.ZERO) # looking at will not take the direction into account when using it in state resting or idle
-	await Util.wait(ROTATION_TIME)
+	#await Util.wait(ROTATION_TIME)
 	if _current_state == State.RESTING:
 		_sprite.frame = _sleep_frame_index
 		_play_emote(EmoteName.SLEEPING)
@@ -312,7 +318,7 @@ func _handle_current_state() -> void:
 			if _anim_player.current_animation == SWIM and _anim_player.is_playing():
 				return
 			_anim_player.current_animation = SWIM
-			_anim_player.speed_scale = 1.0
+			_anim_player.speed_scale = 1.0 if _current_state == State.CHASING else 2.0
 			_anim_player.play()
 		State.SEARCHING:
 			pass
@@ -332,25 +338,35 @@ func _calculate_state() -> void:
 	match _current_state:
 		State.IDLE, State.WANDERING:
 			var dice_roll: float = randf()
-			if dice_roll >= 0.50:
+			if dice_roll >= 0.5:
 				_set_current_state(State.IDLE)
 			else:
 				_set_current_state(State.WANDERING)
 				_is_moving = true
 		State.RESTING:
 			var dice_roll: float = randf()
-			if dice_roll >= 0.40:
+			if dice_roll >= 0.4:
 				_set_current_state(State.WANDERING)
 				_is_moving = true
 			else:
 				_set_current_state(State.IDLE)
+		State.FLEEING:
+			if _previous_state != State.FLEEING:
+				_set_current_state(_previous_state)
+			else:
+				var dice_roll: float = randf()
+				if dice_roll >= 0.5:
+					_set_current_state(State.WANDERING)
+					_is_moving = true
+				else:
+					_set_current_state(State.IDLE)
 	_handle_current_state()
 
 
 func _set_current_state(new_state: State) -> void:
-	var old_state: State = _current_state
+	_previous_state = _current_state
 	_current_state = new_state
-	SignalBus.on_fish_state_changed.emit(self, old_state, _current_state)
+	SignalBus.on_fish_state_changed.emit(self, _previous_state, _current_state)
 
 
 # RESOURCE FUNCTIONS
@@ -458,6 +474,37 @@ func _defer_on_depth_changed() -> void:
 	SignalBus.on_object_depth_changed.emit(self)
 
 
+func _get_nearest_to_tank_wall() -> float:
+	var point_on_left: Vector2 = Vector2(0 + _get_fish_size(), position.y)
+	var point_on_right: Vector2 = Vector2(TankManager.get_tank_dimensions().x - _get_fish_size(), position.y)
+	var point_on_top: Vector2 = Vector2(position.x, 0 + _get_fish_size())
+	var point_on_bottom: Vector2 = Vector2(position.x, TankManager.get_tank_dimensions().y - _get_fish_size())
+
+	var distances: Array[float]
+
+	distances.append(position.distance_to(point_on_left))
+	distances.append(position.distance_to(point_on_right))
+	distances.append(position.distance_to(point_on_top))
+	distances.append(position.distance_to(point_on_bottom))
+
+	var shortest: float = distances[0]
+
+	for d: float in distances:
+		if d < shortest:
+			shortest = d
+
+	return shortest
+
+
+func _calculate_escape_vector(from: Vector2) -> Vector2:
+	var radius: float = _get_nearest_to_tank_wall()
+	var angle_to: float = global_position.angle_to(from)
+	var angle_reverse: float = angle_to - PI
+	var escape_to: Vector2 = Vector2(position.x + radius * cos(angle_reverse), position.y + radius * sin(angle_reverse))
+	escape_to = TankManager.clamp_to_tank(escape_to, _get_fish_size())
+	return escape_to
+
+
 # PUBLIC FUNCTIONS
 
 func get_mouth_position() -> Vector2:
@@ -512,8 +559,11 @@ func _on_idle_tween_finished() -> void:
 
 
 func _on_avoidance_area_body_entered(body: Node2D) -> void:
-	if body == self:
+	if body == self or not body is Fish:
 		return
+	_set_current_state(State.FLEEING)
+	_swim_destination = _calculate_escape_vector(body.position)
+
 
 func _on_avoidance_area_area_shape_entered(_area_rid: RID, area: Area2D, _area_shape_index: int, _local_shape_index: int) -> void:
 	if area.get_parent() is Fish and _current_state != State.RESTING and _is_area_on_same_depth_layer(area):

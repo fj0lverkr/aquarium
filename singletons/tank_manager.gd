@@ -18,6 +18,27 @@ func get_random_point_in_tank() -> Vector2:
 	return Vector2.ZERO
 
 
+func get_tank_dimensions() -> Vector2:
+	if _current_tank:
+		return _current_tank.get_size()
+	return Vector2.ZERO
+
+
+func clamp_to_tank(pos: Vector2, object_size: float) -> Vector2:
+	var tank_dim: Vector2 = get_tank_dimensions()
+	var new_pos: Vector2 = pos
+
+	if new_pos.x < object_size:
+		new_pos.x = object_size
+	if new_pos.y < object_size:
+		new_pos.y = object_size
+	if new_pos.x > tank_dim.x - object_size:
+		new_pos.x = tank_dim.x - object_size
+	if new_pos.y > tank_dim.y - object_size:
+		new_pos.y = tank_dim.y - object_size
+	return new_pos
+
+
 func get_object_scales() -> Dictionary:
 	if !_current_tank:
 		return {}
