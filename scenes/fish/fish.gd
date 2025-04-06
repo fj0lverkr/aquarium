@@ -161,23 +161,16 @@ func _fish_look_at(where: Vector2) -> void:
 
 
 func _correct_orientation() -> void:
-	var new_scale: Vector2
-	var abs_scale: Vector2 = Vector2(absf(scale.x), absf(scale.y))
+	_sprite.flip_v = !_is_facing_right()
 
 	if _is_facing_right():
-		new_scale = abs_scale
 		_flip_emotes(false, false)
 		if TankManager.get_debug_mode():
 			_flip_debug_label(false)
 	else:
-		new_scale = Vector2(abs_scale.x, -abs_scale.y)
 		_flip_emotes(false, true)
 		if TankManager.get_debug_mode():
 			_flip_debug_label(true)
-
-	if new_scale == scale:
-		return
-	scale = new_scale
 
 
 func _handle_movement() -> void:
@@ -266,8 +259,7 @@ func _idle_animation() -> void:
 	var tween_down_time: float = randf_range(0.25, 0.55)
 	var tween_up_time = randf_range(0.25, 0.55)
 	var tween_loops: int = ceili((idle_time - initial_tween_time) / (tween_down_time + tween_up_time))
-	_fish_look_at(Vector2.ZERO) # looking at will not take the direction into account when using it in state resting or idle
-	#await Util.wait(ROTATION_TIME)
+	_fish_look_at(Vector2.ZERO)
 	if _current_state == State.RESTING:
 		_sprite.frame = _sleep_frame_index
 		_play_emote(EmoteName.SLEEPING)
