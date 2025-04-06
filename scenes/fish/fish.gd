@@ -71,6 +71,7 @@ var _prev_vel_x: float = 0.0
 var _distance_traveled: float = 0.0
 var _current_feed_target: Feed = null
 var _idle_tween: Tween
+var _depth_tween: Tween
 var _is_idling: bool = false
 var _is_moving: bool = false
 var _swim_destination: Vector2 = Vector2(-1, -1)
@@ -99,6 +100,8 @@ func _physics_process(_delta: float) -> void:
 		_set_debug_label()
 	if _current_state != State.RESTING and _current_state != State.IDLE:
 		_handle_movement()
+
+	_correct_orientation()
 
 
 # SETUP FUNCTIONS
@@ -156,8 +159,6 @@ func _fish_look_at(where: Vector2) -> void:
 		direction = where
 		angle = (where - global_position).angle()
 		look_at(direction)
-
-	_correct_orientation()
 
 
 func _correct_orientation() -> void:
@@ -223,7 +224,6 @@ func _change_depth(target_depth_layer: int) -> void:
 	if _current_depth_layer == target_depth_layer:
 		return
 
-	var tween: Tween
 	var target_scale: Vector2 = Vector2.ONE
 	var tween_time: float = DEPTH_TIME * 10
 	var target_modulate: Color = Constants.COL_DEPTH_MOD[target_depth_layer]
@@ -244,10 +244,11 @@ func _change_depth(target_depth_layer: int) -> void:
 		scale = target_scale
 		_sprite.self_modulate = target_modulate
 	else:
-		tween = create_tween()
+		_depth_tween = create_tween()
+		_depth_tween.finished.connect(_on_depth_tween_finished)
 		tween_time *= absf(_current_depth_layer - target_depth_layer)
-		tween.tween_property(self, "scale", target_scale, tween_time)
-		tween.parallel().tween_property(_sprite, "self_modulate", target_modulate, tween_time)
+		_depth_tween.tween_property(self, "scale", target_scale, tween_time)
+		_depth_tween.parallel().tween_property(_sprite, "self_modulate", target_modulate, tween_time)
 
 	_current_depth_layer = target_depth_layer
 	call_deferred("_defer_on_depth_changed")
@@ -555,6 +556,10 @@ func _on_idle_tween_finished() -> void:
 		_stat_energy.increase(1000) # TODO make this depend on the time rested
 		_stop_emote(EmoteName.SLEEPING)
 	_end_idle()
+
+
+func _on_depth_tween_finished() -> void:
+	_depth_tween.kill()
 
 
 func _on_avoidance_area_body_entered(body: Node2D) -> void:
