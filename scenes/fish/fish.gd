@@ -101,8 +101,6 @@ func _physics_process(_delta: float) -> void:
 	if _current_state != State.RESTING and _current_state != State.IDLE:
 		_handle_movement()
 
-	_correct_orientation()
-
 
 # SETUP FUNCTIONS
 
@@ -159,6 +157,7 @@ func _fish_look_at(where: Vector2) -> void:
 		direction = where
 		angle = (where - global_position).angle()
 		look_at(direction)
+		_correct_orientation()
 
 
 func _correct_orientation() -> void:
@@ -176,8 +175,6 @@ func _correct_orientation() -> void:
 		if TankManager.get_debug_mode():
 			_flip_debug_label(true)
 
-	if new_scale == scale:
-		return
 	scale = new_scale
 
 
@@ -187,8 +184,8 @@ func _handle_movement() -> void:
 	_set_swim_destination()
 	if _is_moving and (_current_state == State.WANDERING or _current_state == State.CHASING or _current_state == State.FLEEING):
 		_fish_look_at(_swim_destination)
-		var distance: Vector2 = _swim_destination - position
-		if distance.abs() < Vector2(1.0, 1.0) and _is_moving:
+		var distance: Vector2 = _swim_destination - global_position
+		if distance.abs() <= Vector2(2.0, 2.0) and _is_moving:
 			position = _swim_destination
 			_is_moving = false
 		else:
@@ -216,6 +213,9 @@ func _set_swim_destination() -> void:
 				if _swim_destination == Vector2.ZERO:
 					_swim_destination = position
 				_set_depth()
+		State.FLEEING:
+			if _swim_destination == position or _swim_destination == Vector2(-1, -1):
+				_fish_look_at(Vector2.ZERO)
 		_:
 			pass
 
