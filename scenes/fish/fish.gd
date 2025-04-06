@@ -161,16 +161,23 @@ func _fish_look_at(where: Vector2) -> void:
 
 
 func _correct_orientation() -> void:
-	_sprite.flip_v = !_is_facing_right()
+	var new_scale: Vector2
+	var abs_scale: Vector2 = Vector2(absf(scale.x), absf(scale.y))
 
 	if _is_facing_right():
+		new_scale = abs_scale
 		_flip_emotes(false, false)
 		if TankManager.get_debug_mode():
 			_flip_debug_label(false)
 	else:
+		new_scale = Vector2(abs_scale.x, -abs_scale.y)
 		_flip_emotes(false, true)
 		if TankManager.get_debug_mode():
 			_flip_debug_label(true)
+
+	if new_scale == scale:
+		return
+	scale = new_scale
 
 
 func _handle_movement() -> void:
