@@ -190,7 +190,6 @@ func _handle_movement() -> void:
 				else:
 					velocity = distance.normalized() * (_swim_speed if _current_state != State.WANDERING else _swim_speed / SLOW_SWIM_FACTOR)
 					move_and_slide()
-<<<<<<< HEAD
 
 	_set_swim_destination()
 	if _is_moving and (_current_state == State.WANDERING or _current_state == State.CHASING or _current_state == State.FLEEING):
@@ -211,8 +210,6 @@ func _handle_movement() -> void:
 					
 			velocity = distance.normalized() * speed
 			move_and_slide()
-=======
->>>>>>> 4a056ff (fixed depth layer changing)
 	else:
 		_calculate_state()
 
@@ -241,10 +238,6 @@ func _change_depth(target_depth_layer: int) -> void:
 
 	var target_scale: Vector2 = Vector2.ONE
 	var tween_time: float = DEPTH_TIME * SLOW_DIVE_FACTOR if _current_state == State.WANDERING else ROTATION_TIME
-<<<<<<< HEAD
-=======
-	var wait_time: float = randf_range(0.1, 0.15)
->>>>>>> 4a056ff (fixed depth layer changing)
 	var target_modulate: Color = Constants.COL_DEPTH_MOD[target_depth_layer]
 
 	if target_depth_layer > _tank_depth_layers:
@@ -287,11 +280,7 @@ func _idle_animation() -> void:
 	var tween_up_time = randf_range(0.25, 0.55)
 	var tween_loops: int = ceili((idle_time - initial_tween_time) / (tween_down_time + tween_up_time))
 	_fish_look_at(Vector2.ZERO)
-<<<<<<< HEAD
-
-=======
 	await Util.wait(ROTATION_TIME)
->>>>>>> 4a056ff (fixed depth layer changing)
 	if _current_state == State.RESTING:
 		_sprite.frame = _sleep_frame_index
 		_play_emote(EmoteName.SLEEPING)
