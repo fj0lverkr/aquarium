@@ -10,13 +10,9 @@ const EMOTES: Dictionary = {EmoteName.SLEEPING: "sleeping", }
 const SWIM: String = "swim"
 
 const ROTATION_TIME: float = 0.4
-<< << << < HEAD
 const DEPTH_TIME: float = 1.23
 const SLOW_SWIM_FACTOR: int = 2
 const SLOW_DIVE_FACTOR: int = 4
-== == == =
-const DEPTH_TIME: float = 0.23
->> >> >> > 1d1b846e77925015afc1ce30755aa23222cdb97e
 
 const StatusType = StatusValue.StatusType
 
@@ -183,7 +179,6 @@ func _correct_orientation() -> void:
 func _handle_movement() -> void:
 	if velocity.x != 0.0 and _prev_vel_x != velocity.x:
 		_prev_vel_x = velocity.x
-<< << << < HEAD
 	if _is_moving:
 		match _current_state:
 			State.WANDERING:
@@ -195,7 +190,7 @@ func _handle_movement() -> void:
 				else:
 					velocity = distance.normalized() * (_swim_speed if _current_state != State.WANDERING else _swim_speed / SLOW_SWIM_FACTOR)
 					move_and_slide()
-== == == =
+
 	_set_swim_destination()
 	if _is_moving and (_current_state == State.WANDERING or _current_state == State.CHASING or _current_state == State.FLEEING):
 		_fish_look_at(_swim_destination)
@@ -215,7 +210,6 @@ func _handle_movement() -> void:
 					
 			velocity = distance.normalized() * speed
 			move_and_slide()
->> >> >> > 1d1b846e77925015afc1ce30755aa23222cdb97e
 	else:
 		_calculate_state()
 
@@ -244,8 +238,6 @@ func _change_depth(target_depth_layer: int) -> void:
 
 	var target_scale: Vector2 = Vector2.ONE
 	var tween_time: float = DEPTH_TIME * SLOW_DIVE_FACTOR if _current_state == State.WANDERING else ROTATION_TIME
-	var wait_time: float = randf_range(0.1, 0.15)
-	var tween_time: float = DEPTH_TIME * 10
 	var target_modulate: Color = Constants.COL_DEPTH_MOD[target_depth_layer]
 
 	if target_depth_layer > _tank_depth_layers:
@@ -288,13 +280,11 @@ func _idle_animation() -> void:
 	var tween_up_time = randf_range(0.25, 0.55)
 	var tween_loops: int = ceili((idle_time - initial_tween_time) / (tween_down_time + tween_up_time))
 	_fish_look_at(Vector2.ZERO)
-<< << << < HEAD
-	await Util.wait(ROTATION_TIME)
-== == == =
->> >> >> > 1d1b846e77925015afc1ce30755aa23222cdb97e
+
 	if _current_state == State.RESTING:
 		_sprite.frame = _sleep_frame_index
 		_play_emote(EmoteName.SLEEPING)
+
 	ObjectFactory.spawn_mouth_bubbles(_mbe_marker.global_position, scale, _transient_children)
 	_idle_tween = create_tween().set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_BOUNCE)
 	_idle_tween.finished.connect(_on_idle_tween_finished)
