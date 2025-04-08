@@ -58,6 +58,7 @@ _data = {
 script = ExtResource("2_b0ull")
 
 [node name="CollisionShape2D" parent="." index="0"]
+position = Vector2(0, 0)
 shape = SubResource("CapsuleShape2D_mpbkc")
 
 [node name="Sprite2D" parent="." index="1"]
@@ -65,25 +66,27 @@ texture = ExtResource("3_lm8er")
 hframes = 4
 
 [node name="MarkerMouthBubbles" parent="." index="2"]
-position = Vector2(16.2, -2.8)
+position = Vector2(16, 0)
 
 [node name="MarkerMouthEat" parent="." index="3"]
-position = Vector2(12.4, -1.6)
+position = Vector2(14, 1)
 
 [node name="MouthArea" parent="." index="4"]
-position = Vector2(11.2, -1.4)
+position = Vector2(13, 1)
 
 [node name="CollisionShape2D" parent="MouthArea" index="0"]
-position = Vector2(0.200002, -3.57628e-07)
 shape = SubResource("CircleShape2D_sp8bo")
 
+[node name="AvoidanceArea" parent="." index="5"]
+collision_layer = 0
+collision_mask = 16
+
 [node name="CollisionShape2D" parent="AvoidanceArea" index="0"]
-position = Vector2(0.4, -2.4)
 rotation = -1.5708
 shape = SubResource("CapsuleShape2D_iqpxq")
 
 [node name="SleepEmote" parent="." index="7"]
-position = Vector2(8.2, -18.4)
+position = Vector2(13, -13)
 scale = Vector2(0.75, 0.75)
 
 [node name="AnimationPlayer" parent="." index="9"]

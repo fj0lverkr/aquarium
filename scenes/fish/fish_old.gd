@@ -1,4 +1,4 @@
-class_name Fish
+class_name FishBackup
 extends CharacterBody2D
 
 ## Base class for Fish, all other Fish should inherit from this.
@@ -46,11 +46,9 @@ var _status_collection: StatusCollection
 @export
 var _name: String = "Unnamed fish"
 @export
-var _swim_speed: float = 100.0
-@export
 var _wait_min_max: Vector2 = Vector2(2.0, 10.0)
 @export
-var _scale_multiplier: float = 5.0
+var _swim_speed: float = 100.0
 @export
 var _energy_coefficient: float = 1
 @export
@@ -60,13 +58,15 @@ var _idle_frame_index: int = 0
 @export
 var _sleep_frame_index: int = 3
 
+
 var _stat_health: StatusValue
 var _stat_hunger: StatusValue
 var _stat_energy: StatusValue
+
 var _min_scale: Vector2
 var _max_scale: Vector2
 var _tank_depth_layers: int
-var _current_depth_layer: int = 1
+var _current_depth_layer: int = -1
 var _current_state: State = State.IDLE
 var _previous_state: State = State.IDLE
 var _prev_vel_x: float = 0.0
@@ -159,8 +159,21 @@ func _fish_look_at(where: Vector2) -> void:
 
 
 func _correct_orientation() -> void:
-	_sprite.flip_v = !_is_facing_right()
-	# TODO: move the markers and mouth area up or down a bit to match their location on the fish, as well as the debug label
+	var new_scale: Vector2
+	var abs_scale: Vector2 = Vector2(absf(scale.x), absf(scale.y))
+
+	if _is_facing_right():
+		new_scale = abs_scale
+		_flip_emotes(false, false)
+		if TankManager.get_debug_mode():
+			_flip_debug_label(false)
+	else:
+		new_scale = Vector2(abs_scale.x, -abs_scale.y)
+		_flip_emotes(false, true)
+		if TankManager.get_debug_mode():
+			_flip_debug_label(true)
+
+	scale = new_scale
 
 
 func _handle_movement() -> void:
@@ -181,7 +194,7 @@ func _handle_movement() -> void:
 	_set_swim_destination()
 	if _is_moving and (_current_state == State.WANDERING or _current_state == State.CHASING or _current_state == State.FLEEING):
 		_fish_look_at(_swim_destination)
-		var distance: Vector2 = _swim_destination - position
+		var distance: Vector2 = _swim_destination - global_position
 		if distance.abs() <= Vector2(2.0, 2.0) and _is_moving:
 			position = _swim_destination
 			_is_moving = false
@@ -202,6 +215,8 @@ func _handle_movement() -> void:
 
 
 func _set_swim_destination() -> void:
+	if _name == "Bib":
+		print("%s" % State.keys().get(_current_state))
 	match _current_state:
 		State.WANDERING:
 			if _swim_destination == position or _swim_destination == Vector2(-1, -1):
@@ -221,13 +236,13 @@ func _change_depth(target_depth_layer: int) -> void:
 	if _current_depth_layer == target_depth_layer or target_depth_layer == 0:
 		return
 
-	var target_scale: Vector2 = Vector2.ONE * _scale_multiplier
+	var target_scale: Vector2 = Vector2.ONE
 	var tween_time: float = DEPTH_TIME * SLOW_DIVE_FACTOR if _current_state == State.WANDERING else ROTATION_TIME
 	var target_modulate: Color = Constants.COL_DEPTH_MOD[target_depth_layer]
 
 	if target_depth_layer > _tank_depth_layers:
 		target_depth_layer = _tank_depth_layers
-	if target_depth_layer <= 0:
+	if target_depth_layer == 0:
 		target_depth_layer = 1
 
 	target_scale.x = _max_scale.x / target_depth_layer
@@ -579,13 +594,14 @@ func _on_mouth_area_body_entered(body: Node2D) -> void:
 		return
 
 	var f: Feed = body
-	if f.check_pickable(self):
-		_stat_hunger.increase(f.nutri_value)
-		_stat_energy.increase(f.nutri_value * 0.5)
-		_stat_health.increase(f.nutri_value * 0.75)
-		_calculate_state()
-		if _current_feed_target == f:
-			_current_feed_target = null
+	## COMMENT OUT THIS LINE AS IT REFERS TO FISH AND THIS IS THE BACKUP FILE
+	# if f.check_pickable(self as Fish):
+		# _stat_hunger.increase(f.nutri_value)
+		# _stat_energy.increase(f.nutri_value * 0.5)
+		# _stat_health.increase(f.nutri_value * 0.75)
+		# _calculate_state()
+		# if _current_feed_target == f:
+			# _current_feed_target = null
 
 
 func _on_feed_spawned() -> void:
