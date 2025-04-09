@@ -18,24 +18,24 @@ func get_random_point_in_tank() -> Vector2:
 	return Vector2.ZERO
 
 
-func get_tank_dimensions() -> Vector2:
+func get_swimmable_area_corners(start: bool, margin: float = 0.0) -> Vector2:
 	if _current_tank:
-		return _current_tank.get_size()
+		if start:
+			return _current_tank.get_swimmable_area_start_pos(margin)
+		return _current_tank.get_swimmable_area_end_pos(margin)
 	return Vector2.ZERO
 
 
 func clamp_to_tank(pos: Vector2, object_size: float) -> Vector2:
-	var tank_dim: Vector2 = get_tank_dimensions()
+	var start: Vector2 = get_swimmable_area_corners(true, object_size)
+	var end: Vector2 = get_swimmable_area_corners(false, object_size)
 	var new_pos: Vector2 = pos
 
-	if new_pos.x < object_size:
-		new_pos.x = object_size
-	if new_pos.y < object_size:
-		new_pos.y = object_size
-	if new_pos.x > tank_dim.x - object_size:
-		new_pos.x = tank_dim.x - object_size
-	if new_pos.y > tank_dim.y - object_size:
-		new_pos.y = tank_dim.y - object_size
+	new_pos.x = start.x if new_pos.x <= start.x else new_pos.x
+	new_pos.x = end.x if new_pos.x >= end.x else new_pos.x
+	new_pos.y = start.y if new_pos.y <= start.y else new_pos.y
+	new_pos.y = end.y if new_pos.y >= end.y else new_pos.y
+
 	return new_pos
 
 

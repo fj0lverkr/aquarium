@@ -22,6 +22,8 @@ var _backdrop: TextureRect = $Backdrop
 var _feed_parent: Node = $Feed
 @onready
 var _pebble_spawner: PebbleSpawner = $PebbleSpawner
+@onready
+var _swimmable_area: CollisionShape2D = $SwimmableArea/SwimmableShape
 
 var _cursor_in_feed_area: bool = false
 
@@ -52,18 +54,47 @@ func _set_pebble_spawner() -> void:
 	var coo: Node2D = TankManager.get_cursor_over_object()
 	var should_enable: bool = false if (coo != null or _cursor_in_feed_area) else true
 	_pebble_spawner.set_enabled(should_enable)
-
+	
 
 # Public methods
 
 func get_size() -> Vector2:
-	return _size
+	if not _swimmable_area.shape:
+		return Vector2.ZERO
+	return _swimmable_area.shape.get("size")
 
 
 func get_random_point_in_tank() -> Vector2:
-	var random_x: float = randf_range(0.0, _size.x)
-	var random_y: float = randf_range(0.0, _size.y)
+	if not _swimmable_area.shape:
+		return Vector2.ZERO
+
+	var sa_pos: Vector2 = _swimmable_area.position # NOTE: this is the center of the shape
+	var sa_size: Vector2 = _swimmable_area.shape.get("size")
+	var sa_size_halved: Vector2 = sa_size / 2
+
+	var random_x: float = randf_range(sa_pos.x - sa_size_halved.x, sa_pos.x + sa_size_halved.x)
+	var random_y: float = randf_range(sa_pos.y - sa_size_halved.y, sa_pos.y + sa_size_halved.y)
 	return Vector2(random_x, random_y)
+
+
+func get_swimmable_area_start_pos(margin: float = 0.0) -> Vector2:
+	if not _swimmable_area.shape:
+		return Vector2.ZERO
+
+	var sa_pos: Vector2 = _swimmable_area.position # NOTE: this is the center of the shape
+	var sa_size: Vector2 = _swimmable_area.shape.get("size")
+	var sa_size_halved: Vector2 = sa_size / 2
+
+	return Vector2(sa_pos.x - sa_size_halved.x + margin, sa_pos.y - sa_size_halved.y + margin)
+
+
+func get_swimmable_area_end_pos(margin: float = 0.0) -> Vector2:
+	if not _swimmable_area.shape:
+		return Vector2.ZERO
+	var start: Vector2 = get_swimmable_area_start_pos()
+	var sa_size: Vector2 = _swimmable_area.shape.get("size")
+	
+	return Vector2(start.x + sa_size.x - margin, start.y + sa_size.y - margin)
 
 
 func get_object_scales() -> Vector2:

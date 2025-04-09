@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://bb1co66a5eg12"]
+[gd_scene load_steps=13 format=3 uid="uid://bb1co66a5eg12"]
 
 [ext_resource type="PackedScene" uid="uid://bihqfkk8gjp5b" path="res://scenes/tank/tank.tscn" id="1_mjk4k"]
 [ext_resource type="Texture2D" uid="uid://8ok658sjc7wy" path="res://assets/images/backgrounds/ocean.png" id="2_kwcev"]
@@ -29,6 +29,9 @@ _value = 200.0
 [sub_resource type="Resource" id="Resource_236w8"]
 script = ExtResource("6_4h0qu")
 _collection = Array[ExtResource("5_mu25p")]([SubResource("Resource_ct5cd"), SubResource("Resource_0fc76"), SubResource("Resource_fjkf0")])
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_i3s2r"]
+size = Vector2(1122, 573)
 
 [node name="TestTank" instance=ExtResource("1_mjk4k")]
 _size = Vector2(1152, 648)
@@ -73,5 +76,9 @@ scale = Vector2(1.5, 1.5)
 [node name="ShaderOverlay" parent="WaterOverlay" index="1"]
 position = Vector2(-2.21729e-05, 11.6667)
 scale = Vector2(6, 3.43229)
+
+[node name="SwimmableShape" parent="SwimmableArea" index="0"]
+position = Vector2(577, 340.5)
+shape = SubResource("RectangleShape2D_i3s2r")
 
 [editable path="WaterOverlay"]

@@ -41,5 +41,12 @@ shape = SubResource("RectangleShape2D_w0k4c")
 [node name="WaterOverlay" parent="." instance=ExtResource("4_gu3q3")]
 z_index = 999
 
+[node name="SwimmableArea" type="Area2D" parent="."]
+input_pickable = false
+monitoring = false
+monitorable = false
+
+[node name="SwimmableShape" type="CollisionShape2D" parent="SwimmableArea"]
+
 [connection signal="mouse_entered" from="FeederArea" to="." method="_on_feeder_area_mouse_entered"]
 [connection signal="mouse_exited" from="FeederArea" to="." method="_on_feeder_area_mouse_exited"]

@@ -475,10 +475,10 @@ func _defer_on_depth_changed() -> void:
 
 
 func _get_nearest_to_tank_wall() -> float:
-	var point_on_left: Vector2 = Vector2(0 + _get_fish_size(), position.y)
-	var point_on_right: Vector2 = Vector2(TankManager.get_tank_dimensions().x - _get_fish_size(), position.y)
-	var point_on_top: Vector2 = Vector2(position.x, 0 + _get_fish_size())
-	var point_on_bottom: Vector2 = Vector2(position.x, TankManager.get_tank_dimensions().y - _get_fish_size())
+	var point_on_left: Vector2 = Vector2(TankManager.get_swimmable_area_corners(true, _get_fish_size() / 2).x, position.y)
+	var point_on_right: Vector2 = Vector2(TankManager.get_swimmable_area_corners(false, _get_fish_size() / 2).x, position.y)
+	var point_on_top: Vector2 = Vector2(position.x, TankManager.get_swimmable_area_corners(true, _get_fish_size() / 2).y)
+	var point_on_bottom: Vector2 = Vector2(position.x, TankManager.get_swimmable_area_corners(false, _get_fish_size() / 2).y)
 
 	var distances: Array[float]
 
