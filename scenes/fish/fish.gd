@@ -155,12 +155,13 @@ func _fish_look_at(where: Vector2) -> void:
 		direction = where
 		angle = (where - global_position).angle()
 		look_at(direction)
-		_correct_orientation()
+	
+	_correct_orientation()
 
 
 func _correct_orientation() -> void:
 	_sprite.flip_v = !_is_facing_right()
-	# TODO: move the markers and mouth area up or down a bit to match their location on the fish, as well as the debug label
+	# TODO: In child classes, move the markers and mouth area up or down a bit to match their location on the fish, as well as the debug label
 
 
 func _handle_movement() -> void:
