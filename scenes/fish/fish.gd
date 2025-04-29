@@ -77,6 +77,8 @@ var _depth_tween: Tween
 var _is_idling: bool = false
 var _is_moving: bool = false
 var _swim_destination: Vector2 = Vector2(-1, -1)
+var _debug_label_initial_scale: Vector2
+var _debug_label_initial_position: Vector2
 
 
 # OVERRIDDEN FUNCTIONS
@@ -93,6 +95,8 @@ func _ready() -> void:
 		SignalBus.on_feed_spawned.connect(_on_feed_spawned)
 		SignalBus.on_feed_picked.connect(_on_feed_picked)
 		SignalBus.on_object_clicked.connect(_on_object_clicked)
+		_debug_label_initial_scale = _debug_label.scale
+		_debug_label_initial_position = _debug_label.position
 		call_deferred("_setup_debug")
 		_calculate_state()
 
@@ -161,7 +165,9 @@ func _fish_look_at(where: Vector2) -> void:
 
 func _correct_orientation() -> void:
 	_sprite.flip_v = !_is_facing_right()
-	# TODO: In child classes, move the markers and mouth area up or down a bit to match their location on the fish, as well as the debug label
+	_debug_label.scale = _debug_label_initial_scale if _is_facing_right() else _debug_label_initial_scale * -1
+	_debug_label.position = _debug_label_initial_position if _is_facing_right() else _debug_label_initial_position * -1
+	# TODO: move the markers and mouth area up or down a bit to match their location on the fish, as well as the debug label
 
 
 func _handle_movement() -> void:
