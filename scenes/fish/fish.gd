@@ -6,7 +6,7 @@ extends CharacterBody2D
 enum State {IDLE, CHASING, RESTING, WANDERING, SEARCHING, FLEEING, }
 enum EmoteName {SLEEPING, }
 
-const EMOTES: Dictionary = {EmoteName.SLEEPING: "sleeping", }
+const EMOTES: Dictionary[EmoteName, String] = {EmoteName.SLEEPING: "sleeping", }
 const SWIM: String = "swim"
 
 const ROTATION_TIME: float = 0.4
