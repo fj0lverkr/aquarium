@@ -42,9 +42,6 @@ var _debug_label: Label = $DebugLabel
 @export
 var _status_collection: StatusCollection
 
-## TODO: possible put these exported vars in an initializer func so a global spawner can set them up for individual fish?
-## or do this from the child classes in stead?
-
 @export
 var _name: String = "Unnamed fish"
 @export
