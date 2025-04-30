@@ -17,15 +17,15 @@ const SLOW_DIVE_FACTOR: int = 4
 const StatusType = StatusValue.StatusType
 
 @onready
-var _collider: CollisionShape2D = $CollisionShape2D
+var _collider: CollisionShape2D = $FishMainCollider
 @onready
-var _mbe_marker: Marker2D = $MarkerMouthBubbles
+var _marker_mouth_bubbles: Marker2D = $MarkerMouthBubbles
 @onready
 var _transient_children: Node = $TransientChildren
 @onready
 var _mood_player: AnimationPlayer = $MoodPlayer
 @onready
-var _emotes: Dictionary = {EmoteName.SLEEPING: $SleepEmote, }
+var _emotes: Dictionary[EmoteName, Node2D] = {EmoteName.SLEEPING: $SleepEmote, }
 @onready
 var _marker_mouth_eat: Marker2D = $MarkerMouthEat
 @onready
@@ -34,6 +34,8 @@ var _anim_player: AnimationPlayer = $AnimationPlayer
 var _sprite: Sprite2D = $Sprite2D
 @onready
 var _mouth_area: Area2D = $MouthArea
+@onready
+var _avoidance_area: Area2D = $AvoidanceArea
 @onready
 var _debug_label: Label = $DebugLabel
 
@@ -77,8 +79,16 @@ var _depth_tween: Tween
 var _is_idling: bool = false
 var _is_moving: bool = false
 var _swim_destination: Vector2 = Vector2(-1, -1)
+
+# variables to store initial transform values so we can set and reset them later.
+var _collider_initial_position: Vector2
 var _debug_label_initial_scale: Vector2
 var _debug_label_initial_position: Vector2
+var _marker_mouth_bubbles_initial_position: Vector2
+var _marker_mouth_eat_initial_position: Vector2
+var _mouth_area_initial_position: Vector2
+var _avoidance_area_initial_position: Vector2
+var _emotes_initial_positions: Dictionary[EmoteName, Vector2]
 
 
 # OVERRIDDEN FUNCTIONS
@@ -95,8 +105,6 @@ func _ready() -> void:
 		SignalBus.on_feed_spawned.connect(_on_feed_spawned)
 		SignalBus.on_feed_picked.connect(_on_feed_picked)
 		SignalBus.on_object_clicked.connect(_on_object_clicked)
-		_debug_label_initial_scale = _debug_label.scale
-		_debug_label_initial_position = _debug_label.position
 		call_deferred("_setup_debug")
 		_calculate_state()
 
@@ -121,8 +129,23 @@ func _setup() -> void:
 		_stat_hunger = _status_collection.get_stat_by_type(StatusValue.StatusType.HUNGER)
 		_stat_energy = _status_collection.get_stat_by_type(StatusValue.StatusType.ENERGY)
 		_check_minimum_stats_present()
+		_setup_initial_values()
 	else:
 		queue_free()
+
+
+func _setup_initial_values() -> void:
+	_collider_initial_position = _collider.position
+	_debug_label_initial_scale = _debug_label.scale
+	_debug_label_initial_position = _debug_label.position
+	_marker_mouth_bubbles_initial_position = _marker_mouth_bubbles.position
+	_marker_mouth_eat_initial_position = _marker_mouth_eat.position
+	_mouth_area_initial_position = _mouth_area.position
+	_avoidance_area_initial_position = _avoidance_area.position
+
+	# Emotes:
+	for e: EmoteName in _emotes.keys():
+		_emotes_initial_positions[e] = _emotes[e].position
 
 
 func _setup_object_scale() -> void:
@@ -164,13 +187,26 @@ func _fish_look_at(where: Vector2) -> void:
 
 
 func _correct_orientation() -> void:
-	_sprite.flip_v = !_is_facing_right()
-	_debug_label.scale = _debug_label_initial_scale if _is_facing_right() else _debug_label_initial_scale * -1
-	_debug_label.position = _debug_label_initial_position if _is_facing_right() else _debug_label_initial_position * -1
-	# TODO: move the markers and mouth area up or down a bit to match their location on the fish, as well as the debug label
+	var facing_right: bool = _is_facing_right()
+	_sprite.flip_v = !facing_right
+
+	# Flip and reposition _debug_label
+	_debug_label.scale = _flip_vector2(_debug_label_initial_scale, !facing_right)
+	_debug_label.position = _flip_vector2(_debug_label_initial_position, !facing_right)
+
+	# These get their position.x set correctly when the Fish turns, so only the position.y should be corrected:
+	_collider.position.y = _flip_vector2(_collider_initial_position, !facing_right).y
+	_marker_mouth_bubbles.position.y = _flip_vector2(_marker_mouth_bubbles_initial_position, !facing_right).y
+	_marker_mouth_eat.position.y = _flip_vector2(_marker_mouth_eat_initial_position, !facing_right).y
+	_mouth_area.position.y = _flip_vector2(_mouth_area_initial_position, !facing_right).y
+	_avoidance_area.position.y = _flip_vector2(_avoidance_area_initial_position, !facing_right).y
+
+	# Emotes:
+	_flip_emotes(!facing_right)
 
 
 func _handle_movement() -> void:
+	# TODO we use the distance to ease out the speed, needs finetuning!
 	if velocity.x != 0.0 and _prev_vel_x != velocity.x:
 		_prev_vel_x = velocity.x
 	if _is_moving:
@@ -182,7 +218,7 @@ func _handle_movement() -> void:
 					position = _swim_destination
 					_is_moving = false
 				else:
-					velocity = distance.normalized() * (_swim_speed if _current_state != State.WANDERING else _swim_speed / SLOW_SWIM_FACTOR)
+					velocity = distance.normalized() * (_swim_speed if _current_state != State.WANDERING else _swim_speed / SLOW_SWIM_FACTOR) + distance / 10
 					move_and_slide()
 
 	_set_swim_destination()
@@ -202,7 +238,7 @@ func _handle_movement() -> void:
 				_:
 					speed = speed
 					
-			velocity = distance.normalized() * speed
+			velocity = distance.normalized() * speed + distance / 10
 			move_and_slide()
 	else:
 		_calculate_state()
@@ -277,7 +313,7 @@ func _idle_animation() -> void:
 		_sprite.frame = _sleep_frame_index
 		_play_emote(EmoteName.SLEEPING)
 
-	ObjectFactory.spawn_mouth_bubbles(_mbe_marker.global_position, scale, _transient_children)
+	ObjectFactory.spawn_mouth_bubbles(_marker_mouth_bubbles.global_position, scale, _transient_children)
 	_idle_tween = create_tween().set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_BOUNCE)
 	_idle_tween.finished.connect(_on_idle_tween_finished)
 	_idle_tween.tween_property(self, "global_position:y", global_position.y - 1, initial_tween_time)
@@ -307,10 +343,11 @@ func _stop_emote(emote_name: EmoteName) -> void:
 	_mood_player.stop()
 
 
-func _flip_emotes(e_flip_v: bool, e_flip_h: bool) -> void:
-	for e: Sprite2D in _emotes.values():
-		e.flip_h = e_flip_h
-		e.flip_v = e_flip_v
+func _flip_emotes(flip: bool) -> void:
+	for e: EmoteName in _emotes.keys():
+		_emotes[e].position.y = _flip_vector2(_emotes_initial_positions[e], flip).y
+		_emotes[e].flip_h = flip
+		_emotes[e].flip_v = flip
 
 
 # STATE FUNCTIONS
@@ -348,7 +385,8 @@ func _calculate_state() -> void:
 		State.IDLE, State.WANDERING:
 			var dice_roll: float = randf()
 			if dice_roll >= 0.5:
-				_set_current_state(State.IDLE)
+				#_set_current_state(State.IDLE)
+				_set_current_state(State.RESTING)
 			else:
 				_set_current_state(State.WANDERING)
 		State.RESTING:
@@ -427,11 +465,8 @@ func _process_slide_collisions():
 
 # HELPER FUNCTIONS
 
-func _flip_debug_label(flip: bool) -> void:
-	var half_label = _debug_label.size.x / 2
-	_debug_label.position.x = 0
-	_debug_label.scale.x = -1 if flip else 1
-	_debug_label.position.x += half_label if flip else -half_label
+func _flip_vector2(vec: Vector2, flip: bool) -> Vector2:
+	return vec * -1 if flip else vec
 
 
 func _check_minimum_stats_present() -> void:
