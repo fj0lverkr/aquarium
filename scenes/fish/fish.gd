@@ -105,7 +105,6 @@ func _ready() -> void:
 		SignalBus.on_feed_spawned.connect(_on_feed_spawned)
 		SignalBus.on_feed_picked.connect(_on_feed_picked)
 		SignalBus.on_object_clicked.connect(_on_object_clicked)
-		call_deferred("_setup_debug")
 		_calculate_state()
 
 
@@ -132,6 +131,7 @@ func _setup() -> void:
 		_setup_initial_values()
 		# TODO replace this when loading fish from savestate
 		call_deferred("_set_random_target_depth", true)
+		call_deferred("_setup_debug")
 	else:
 		queue_free()
 
