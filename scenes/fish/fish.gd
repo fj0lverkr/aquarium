@@ -153,6 +153,8 @@ func _setup_object_scale() -> void:
 	_min_scale = scales_by_tank.min
 	_max_scale = scales_by_tank.max
 	_tank_depth_layers = TankManager.get_depth_layers()
+
+	# the following we can remove when we load fish from a savestate rather than directly in the scene:
 	var initial_dl: int = randi_range(1, _tank_depth_layers)
 	_change_depth(initial_dl)
 
@@ -163,7 +165,7 @@ func _setup_debug() -> void:
 
 # MOVEMENT FUNCTIONS
 
-func _set_depth() -> void:
+func _set_random_target_depth() -> void:
 	var dl: int = randi_range(1, _tank_depth_layers)
 	_change_depth(dl)
 
@@ -206,28 +208,18 @@ func _correct_orientation() -> void:
 
 
 func _handle_movement() -> void:
-	# TODO we use the distance to ease out the speed, needs finetuning!
 	if velocity.x != 0.0 and _prev_vel_x != velocity.x:
 		_prev_vel_x = velocity.x
-	if _is_moving:
-		match _current_state:
-			State.WANDERING:
-				_fish_look_at(_swim_destination)
-				var distance: Vector2 = _swim_destination - position
-				if distance.abs() < Vector2(1.0, 1.0) and _is_moving:
-					position = _swim_destination
-					_is_moving = false
-				else:
-					velocity = distance.normalized() * (_swim_speed if _current_state != State.WANDERING else _swim_speed / SLOW_SWIM_FACTOR) + distance / 10
-					move_and_slide()
 
-	_set_swim_destination()
-	if _is_moving and (_current_state == State.WANDERING or _current_state == State.CHASING or _current_state == State.FLEEING):
+	if _is_moving:
 		_fish_look_at(_swim_destination)
+		_set_swim_destination()
 		var distance: Vector2 = _swim_destination - position
-		if distance.abs() <= Vector2(2.0, 2.0) and _is_moving:
+		if distance.abs() < Vector2(1.0, 1.0) and _is_moving:
 			position = _swim_destination
 			_is_moving = false
+			_calculate_state()
+
 		else:
 			var speed = _swim_speed
 			match _current_state:
@@ -237,11 +229,10 @@ func _handle_movement() -> void:
 					speed *= 2
 				_:
 					speed = speed
-					
+
+			# TODO we use the distance to ease out the speed, needs finetuning!
 			velocity = distance.normalized() * speed + distance / 10
 			move_and_slide()
-	else:
-		_calculate_state()
 
 
 func _set_swim_destination() -> void:
@@ -252,7 +243,7 @@ func _set_swim_destination() -> void:
 				_swim_destination = TankManager.clamp_to_tank(_swim_destination, _get_fish_size())
 				if _swim_destination == Vector2.ZERO:
 					_swim_destination = position
-				_set_depth()
+				_set_random_target_depth()
 		State.FLEEING:
 			if _swim_destination == position or _swim_destination == Vector2(-1, -1):
 				_fish_look_at(Vector2.ZERO)
