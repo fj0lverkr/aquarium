@@ -269,8 +269,6 @@ func _change_depth(target_depth_layer: int) -> void:
 	if target_scale.x < _min_scale.x or target_scale.y < _min_scale.y:
 		target_scale = _min_scale
 
-	target_scale = _get_corrected_scale(target_scale)
-
 	if _current_depth_layer == -1:
 		scale = target_scale
 		_sprite.self_modulate = target_modulate
@@ -481,13 +479,6 @@ func _filter_feed_by_dl(f: Feed) -> bool:
 
 func _is_facing_right() -> bool:
 	return _marker_mouth_eat.global_position.x > global_position.x or velocity.x > 0
-
-
-func _get_corrected_scale(target: Vector2) -> Vector2:
-	var corrected_scale: Vector2 = Vector2.ZERO
-	corrected_scale.x = target.x if scale.x >= 0 else -target.x
-	corrected_scale.y = target.y if scale.y >= 0 else -target.y
-	return corrected_scale
 
 
 func _is_body_on_same_depth_layer(body: Node) -> bool:
