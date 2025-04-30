@@ -130,6 +130,7 @@ func _setup() -> void:
 		_stat_energy = _status_collection.get_stat_by_type(StatusValue.StatusType.ENERGY)
 		_check_minimum_stats_present()
 		_setup_initial_values()
+		# TODO replace this when loading fish from savestate
 		call_deferred("_set_random_target_depth", true)
 	else:
 		queue_free()
