@@ -12,7 +12,7 @@ const SWIM: String = "swim"
 const ROTATION_TIME: float = 0.4
 const DEPTH_TIME: float = 1.23
 const SLOW_SWIM_FACTOR: int = 2
-const SLOW_DIVE_FACTOR: int = 4
+const SLOW_DIVE_FACTOR: float = 1.5
 
 const StatusType = StatusValue.StatusType
 
@@ -130,6 +130,7 @@ func _setup() -> void:
 		_stat_energy = _status_collection.get_stat_by_type(StatusValue.StatusType.ENERGY)
 		_check_minimum_stats_present()
 		_setup_initial_values()
+		call_deferred("_set_random_target_depth", true)
 	else:
 		queue_free()
 
@@ -154,10 +155,6 @@ func _setup_object_scale() -> void:
 	_max_scale = scales_by_tank.max
 	_tank_depth_layers = TankManager.get_depth_layers()
 
-	# the following we can remove when we load fish from a savestate rather than directly in the scene:
-	var initial_dl: int = randi_range(1, _tank_depth_layers)
-	_change_depth(initial_dl)
-
 
 func _setup_debug() -> void:
 	_debug_label.visible = TankManager.get_debug_mode()
@@ -165,9 +162,9 @@ func _setup_debug() -> void:
 
 # MOVEMENT FUNCTIONS
 
-func _set_random_target_depth() -> void:
+func _set_random_target_depth(initial: bool) -> void:
 	var dl: int = randi_range(1, _tank_depth_layers)
-	_change_depth(dl)
+	_change_depth(dl, initial)
 
 
 func _fish_look_at(where: Vector2) -> void:
@@ -243,7 +240,7 @@ func _set_swim_destination() -> void:
 				_swim_destination = TankManager.clamp_to_tank(_swim_destination, _get_fish_size())
 				if _swim_destination == Vector2.ZERO:
 					_swim_destination = position
-				_set_random_target_depth()
+				_set_random_target_depth(false)
 		State.FLEEING:
 			if _swim_destination == position or _swim_destination == Vector2(-1, -1):
 				_fish_look_at(Vector2.ZERO)
@@ -251,12 +248,12 @@ func _set_swim_destination() -> void:
 			pass
 
 
-func _change_depth(target_depth_layer: int) -> void:
+func _change_depth(target_depth_layer: int, initial: bool = false) -> void:
 	if _current_depth_layer == target_depth_layer or target_depth_layer == 0:
 		return
 
 	var target_scale: Vector2 = Vector2.ONE * _scale_multiplier
-	var tween_time: float = DEPTH_TIME * SLOW_DIVE_FACTOR if _current_state == State.WANDERING else ROTATION_TIME
+	var tween_time: float = DEPTH_TIME * SLOW_DIVE_FACTOR if _current_state == State.WANDERING else DEPTH_TIME
 	var target_modulate: Color = Constants.COL_DEPTH_MOD[target_depth_layer]
 
 	if target_depth_layer > _tank_depth_layers:
@@ -269,10 +266,13 @@ func _change_depth(target_depth_layer: int) -> void:
 	if target_scale.x < _min_scale.x or target_scale.y < _min_scale.y:
 		target_scale = _min_scale
 
-	if _current_depth_layer == -1:
+	if _current_depth_layer == -1 or initial:
 		scale = target_scale
 		_sprite.self_modulate = target_modulate
 	else:
+		if _depth_tween and _depth_tween.is_running():
+			#prevent long running tweens from stacking and ruining the depth effect
+			return
 		_depth_tween = create_tween()
 		_depth_tween.finished.connect(_on_depth_tween_finished)
 		tween_time *= absf(_current_depth_layer - target_depth_layer)
@@ -366,6 +366,9 @@ func _handle_current_state() -> void:
 			_is_moving = false
 			if _anim_player.is_playing():
 				_anim_player.stop()
+			if _depth_tween and _depth_tween.is_running():
+				#prevent shrinking/growing when fish is idle
+				_depth_tween.kill()
 			_idle_animation()
 
 
@@ -374,8 +377,7 @@ func _calculate_state() -> void:
 		State.IDLE, State.WANDERING:
 			var dice_roll: float = randf()
 			if dice_roll >= 0.5:
-				#_set_current_state(State.IDLE)
-				_set_current_state(State.RESTING)
+				_set_current_state(State.IDLE)
 			else:
 				_set_current_state(State.WANDERING)
 		State.RESTING:
