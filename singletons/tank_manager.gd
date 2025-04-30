@@ -13,7 +13,30 @@ func get_current_tank() -> Tank:
 
 
 func get_random_point_in_tank() -> Vector2:
-	return _current_tank.get_random_point_in_tank()
+	if _current_tank:
+		return _current_tank.get_random_point_in_tank()
+	return Vector2.ZERO
+
+
+func get_swimmable_area_corners(start: bool, margin: float = 0.0) -> Vector2:
+	if _current_tank:
+		if start:
+			return _current_tank.get_swimmable_area_start_pos(margin)
+		return _current_tank.get_swimmable_area_end_pos(margin)
+	return Vector2.ZERO
+
+
+func clamp_to_tank(pos: Vector2, object_size: float) -> Vector2:
+	var start: Vector2 = get_swimmable_area_corners(true, object_size)
+	var end: Vector2 = get_swimmable_area_corners(false, object_size)
+	var new_pos: Vector2 = pos
+
+	new_pos.x = start.x if new_pos.x <= start.x else new_pos.x
+	new_pos.x = end.x if new_pos.x >= end.x else new_pos.x
+	new_pos.y = start.y if new_pos.y <= start.y else new_pos.y
+	new_pos.y = end.y if new_pos.y >= end.y else new_pos.y
+
+	return new_pos
 
 
 func get_object_scales() -> Dictionary:
@@ -40,6 +63,8 @@ func get_cursor_over_object() -> Node2D:
 
 
 func get_debug_mode() -> bool:
+	if not _current_tank:
+		return false
 	return _current_tank.get_debug_mode()
 
 

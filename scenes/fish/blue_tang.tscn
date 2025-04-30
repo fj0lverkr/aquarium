@@ -4,15 +4,16 @@
 [ext_resource type="Script" uid="uid://buqhxjrjj7wqh" path="res://scenes/fish/blue_tang.gd" id="2_b0ull"]
 [ext_resource type="Texture2D" uid="uid://cypr13dr28821" path="res://assets/images/fish/blue.png" id="3_lm8er"]
 
-[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_mpbkc"]
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_ducv0"]
 radius = 7.0
-height = 24.0
+height = 26.0
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_sp8bo"]
 radius = 2.2
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_jmc7n"]
-radius = 11.4017
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_iqpxq"]
+radius = 9.2
+height = 31.2
 
 [sub_resource type="Animation" id="Animation_gsisl"]
 length = 0.001
@@ -55,42 +56,45 @@ _data = {
 
 [node name="BlueTang" instance=ExtResource("1_yyvfo")]
 script = ExtResource("2_b0ull")
-_debug = true
 
-[node name="CollisionShape2D" parent="." index="0"]
-shape = SubResource("CapsuleShape2D_mpbkc")
+[node name="FishMainCollider" parent="." index="0"]
+position = Vector2(0, 0)
+shape = SubResource("CapsuleShape2D_ducv0")
 
 [node name="Sprite2D" parent="." index="1"]
 texture = ExtResource("3_lm8er")
-hframes = 3
+vframes = 4
 
-[node name="MarkerMouthBubbles" parent="." index="3"]
-position = Vector2(16.2, -2.8)
+[node name="MarkerMouthBubbles" parent="." index="2"]
+position = Vector2(16, 0)
 
-[node name="MarkerMouthEat" parent="." index="4"]
-position = Vector2(12.4, -1.6)
+[node name="MarkerMouthEat" parent="." index="3"]
+position = Vector2(14, 1)
 
-[node name="MouthArea" parent="." index="5"]
-position = Vector2(11.2, -1.4)
+[node name="MouthArea" parent="." index="4"]
+position = Vector2(13, 1)
 
 [node name="CollisionShape2D" parent="MouthArea" index="0"]
-position = Vector2(0.200002, -3.57628e-07)
 shape = SubResource("CircleShape2D_sp8bo")
 
-[node name="CollisionShape2D" parent="AvoidanceArea" index="0"]
-position = Vector2(10.4, -3)
-shape = SubResource("CircleShape2D_jmc7n")
+[node name="AvoidanceArea" parent="." index="5"]
+collision_layer = 0
+collision_mask = 16
 
-[node name="SleepEmote" parent="." index="8"]
-position = Vector2(8.2, -18.4)
+[node name="CollisionShape2D" parent="AvoidanceArea" index="0"]
+rotation = -1.5708
+shape = SubResource("CapsuleShape2D_iqpxq")
+
+[node name="SleepEmote" parent="." index="7"]
+position = Vector2(13, -13)
 scale = Vector2(0.75, 0.75)
 
-[node name="AnimationPlayer" parent="." index="10"]
+[node name="AnimationPlayer" parent="." index="9"]
 libraries = {
-"": SubResource("AnimationLibrary_ijsa1")
+&"": SubResource("AnimationLibrary_ijsa1")
 }
 
-[node name="DebugLabel" parent="." index="11"]
+[node name="DebugLabel" parent="." index="10"]
 offset_left = -33.4
 offset_top = -23.8
 offset_right = 33.6

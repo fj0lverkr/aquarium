@@ -1,4 +1,4 @@
-class_name Fish
+class_name FishBackup
 extends CharacterBody2D
 
 ## Base class for Fish, all other Fish should inherit from this.
@@ -6,7 +6,7 @@ extends CharacterBody2D
 enum State {IDLE, CHASING, RESTING, WANDERING, SEARCHING, FLEEING, }
 enum EmoteName {SLEEPING, }
 
-const EMOTES: Dictionary[EmoteName, String] = {EmoteName.SLEEPING: "sleeping", }
+const EMOTES: Dictionary = {EmoteName.SLEEPING: "sleeping", }
 const SWIM: String = "swim"
 
 const ROTATION_TIME: float = 0.4
@@ -17,15 +17,15 @@ const SLOW_DIVE_FACTOR: int = 4
 const StatusType = StatusValue.StatusType
 
 @onready
-var _collider: CollisionShape2D = $FishMainCollider
+var _collider: CollisionShape2D = $CollisionShape2D
 @onready
-var _marker_mouth_bubbles: Marker2D = $MarkerMouthBubbles
+var _mbe_marker: Marker2D = $MarkerMouthBubbles
 @onready
 var _transient_children: Node = $TransientChildren
 @onready
 var _mood_player: AnimationPlayer = $MoodPlayer
 @onready
-var _emotes: Dictionary[EmoteName, Node2D] = {EmoteName.SLEEPING: $SleepEmote, }
+var _emotes: Dictionary = {EmoteName.SLEEPING: $SleepEmote, }
 @onready
 var _marker_mouth_eat: Marker2D = $MarkerMouthEat
 @onready
@@ -34,8 +34,6 @@ var _anim_player: AnimationPlayer = $AnimationPlayer
 var _sprite: Sprite2D = $Sprite2D
 @onready
 var _mouth_area: Area2D = $MouthArea
-@onready
-var _avoidance_area: Area2D = $AvoidanceArea
 @onready
 var _debug_label: Label = $DebugLabel
 
@@ -48,11 +46,9 @@ var _status_collection: StatusCollection
 @export
 var _name: String = "Unnamed fish"
 @export
-var _swim_speed: float = 100.0
-@export
 var _wait_min_max: Vector2 = Vector2(2.0, 10.0)
 @export
-var _scale_multiplier: float = 5.0
+var _swim_speed: float = 100.0
 @export
 var _energy_coefficient: float = 1
 @export
@@ -62,13 +58,15 @@ var _idle_frame_index: int = 0
 @export
 var _sleep_frame_index: int = 3
 
+
 var _stat_health: StatusValue
 var _stat_hunger: StatusValue
 var _stat_energy: StatusValue
+
 var _min_scale: Vector2
 var _max_scale: Vector2
 var _tank_depth_layers: int
-var _current_depth_layer: int = 1
+var _current_depth_layer: int = -1
 var _current_state: State = State.IDLE
 var _previous_state: State = State.IDLE
 var _prev_vel_x: float = 0.0
@@ -79,16 +77,6 @@ var _depth_tween: Tween
 var _is_idling: bool = false
 var _is_moving: bool = false
 var _swim_destination: Vector2 = Vector2(-1, -1)
-
-# variables to store initial transform values so we can set and reset them later.
-var _collider_initial_position: Vector2
-var _debug_label_initial_scale: Vector2
-var _debug_label_initial_position: Vector2
-var _marker_mouth_bubbles_initial_position: Vector2
-var _marker_mouth_eat_initial_position: Vector2
-var _mouth_area_initial_position: Vector2
-var _avoidance_area_initial_position: Vector2
-var _emotes_initial_positions: Dictionary[EmoteName, Vector2]
 
 
 # OVERRIDDEN FUNCTIONS
@@ -129,23 +117,8 @@ func _setup() -> void:
 		_stat_hunger = _status_collection.get_stat_by_type(StatusValue.StatusType.HUNGER)
 		_stat_energy = _status_collection.get_stat_by_type(StatusValue.StatusType.ENERGY)
 		_check_minimum_stats_present()
-		_setup_initial_values()
 	else:
 		queue_free()
-
-
-func _setup_initial_values() -> void:
-	_collider_initial_position = _collider.position
-	_debug_label_initial_scale = _debug_label.scale
-	_debug_label_initial_position = _debug_label.position
-	_marker_mouth_bubbles_initial_position = _marker_mouth_bubbles.position
-	_marker_mouth_eat_initial_position = _marker_mouth_eat.position
-	_mouth_area_initial_position = _mouth_area.position
-	_avoidance_area_initial_position = _avoidance_area.position
-
-	# Emotes:
-	for e: EmoteName in _emotes.keys():
-		_emotes_initial_positions[e] = _emotes[e].position
 
 
 func _setup_object_scale() -> void:
@@ -182,31 +155,28 @@ func _fish_look_at(where: Vector2) -> void:
 		direction = where
 		angle = (where - global_position).angle()
 		look_at(direction)
-	
-	_correct_orientation()
+		_correct_orientation()
 
 
 func _correct_orientation() -> void:
-	var facing_right: bool = _is_facing_right()
-	_sprite.flip_v = !facing_right
+	var new_scale: Vector2
+	var abs_scale: Vector2 = Vector2(absf(scale.x), absf(scale.y))
 
-	# Flip and reposition _debug_label
-	_debug_label.scale = _flip_vector2(_debug_label_initial_scale, !facing_right)
-	_debug_label.position = _flip_vector2(_debug_label_initial_position, !facing_right)
+	if _is_facing_right():
+		new_scale = abs_scale
+		_flip_emotes(false, false)
+		if TankManager.get_debug_mode():
+			_flip_debug_label(false)
+	else:
+		new_scale = Vector2(abs_scale.x, -abs_scale.y)
+		_flip_emotes(false, true)
+		if TankManager.get_debug_mode():
+			_flip_debug_label(true)
 
-	# These get their position.x set correctly when the Fish turns, so only the position.y should be corrected:
-	_collider.position.y = _flip_vector2(_collider_initial_position, !facing_right).y
-	_marker_mouth_bubbles.position.y = _flip_vector2(_marker_mouth_bubbles_initial_position, !facing_right).y
-	_marker_mouth_eat.position.y = _flip_vector2(_marker_mouth_eat_initial_position, !facing_right).y
-	_mouth_area.position.y = _flip_vector2(_mouth_area_initial_position, !facing_right).y
-	_avoidance_area.position.y = _flip_vector2(_avoidance_area_initial_position, !facing_right).y
-
-	# Emotes:
-	_flip_emotes(!facing_right)
+	scale = new_scale
 
 
 func _handle_movement() -> void:
-	# TODO we use the distance to ease out the speed, needs finetuning!
 	if velocity.x != 0.0 and _prev_vel_x != velocity.x:
 		_prev_vel_x = velocity.x
 	if _is_moving:
@@ -218,13 +188,13 @@ func _handle_movement() -> void:
 					position = _swim_destination
 					_is_moving = false
 				else:
-					velocity = distance.normalized() * (_swim_speed if _current_state != State.WANDERING else _swim_speed / SLOW_SWIM_FACTOR) + distance / 10
+					velocity = distance.normalized() * (_swim_speed if _current_state != State.WANDERING else _swim_speed / SLOW_SWIM_FACTOR)
 					move_and_slide()
 
 	_set_swim_destination()
 	if _is_moving and (_current_state == State.WANDERING or _current_state == State.CHASING or _current_state == State.FLEEING):
 		_fish_look_at(_swim_destination)
-		var distance: Vector2 = _swim_destination - position
+		var distance: Vector2 = _swim_destination - global_position
 		if distance.abs() <= Vector2(2.0, 2.0) and _is_moving:
 			position = _swim_destination
 			_is_moving = false
@@ -238,13 +208,15 @@ func _handle_movement() -> void:
 				_:
 					speed = speed
 					
-			velocity = distance.normalized() * speed + distance / 10
+			velocity = distance.normalized() * speed
 			move_and_slide()
 	else:
 		_calculate_state()
 
 
 func _set_swim_destination() -> void:
+	if _name == "Bib":
+		print("%s" % State.keys().get(_current_state))
 	match _current_state:
 		State.WANDERING:
 			if _swim_destination == position or _swim_destination == Vector2(-1, -1):
@@ -264,13 +236,13 @@ func _change_depth(target_depth_layer: int) -> void:
 	if _current_depth_layer == target_depth_layer or target_depth_layer == 0:
 		return
 
-	var target_scale: Vector2 = Vector2.ONE * _scale_multiplier
+	var target_scale: Vector2 = Vector2.ONE
 	var tween_time: float = DEPTH_TIME * SLOW_DIVE_FACTOR if _current_state == State.WANDERING else ROTATION_TIME
 	var target_modulate: Color = Constants.COL_DEPTH_MOD[target_depth_layer]
 
 	if target_depth_layer > _tank_depth_layers:
 		target_depth_layer = _tank_depth_layers
-	if target_depth_layer <= 0:
+	if target_depth_layer == 0:
 		target_depth_layer = 1
 
 	target_scale.x = _max_scale.x / target_depth_layer
@@ -313,7 +285,7 @@ func _idle_animation() -> void:
 		_sprite.frame = _sleep_frame_index
 		_play_emote(EmoteName.SLEEPING)
 
-	ObjectFactory.spawn_mouth_bubbles(_marker_mouth_bubbles.global_position, scale, _transient_children)
+	ObjectFactory.spawn_mouth_bubbles(_mbe_marker.global_position, scale, _transient_children)
 	_idle_tween = create_tween().set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_BOUNCE)
 	_idle_tween.finished.connect(_on_idle_tween_finished)
 	_idle_tween.tween_property(self, "global_position:y", global_position.y - 1, initial_tween_time)
@@ -343,11 +315,10 @@ func _stop_emote(emote_name: EmoteName) -> void:
 	_mood_player.stop()
 
 
-func _flip_emotes(flip: bool) -> void:
-	for e: EmoteName in _emotes.keys():
-		_emotes[e].position.y = _flip_vector2(_emotes_initial_positions[e], flip).y
-		_emotes[e].flip_h = flip
-		_emotes[e].flip_v = flip
+func _flip_emotes(e_flip_v: bool, e_flip_h: bool) -> void:
+	for e: Sprite2D in _emotes.values():
+		e.flip_h = e_flip_h
+		e.flip_v = e_flip_v
 
 
 # STATE FUNCTIONS
@@ -385,8 +356,7 @@ func _calculate_state() -> void:
 		State.IDLE, State.WANDERING:
 			var dice_roll: float = randf()
 			if dice_roll >= 0.5:
-				#_set_current_state(State.IDLE)
-				_set_current_state(State.RESTING)
+				_set_current_state(State.IDLE)
 			else:
 				_set_current_state(State.WANDERING)
 		State.RESTING:
@@ -465,8 +435,11 @@ func _process_slide_collisions():
 
 # HELPER FUNCTIONS
 
-func _flip_vector2(vec: Vector2, flip: bool) -> Vector2:
-	return vec * -1 if flip else vec
+func _flip_debug_label(flip: bool) -> void:
+	var half_label = _debug_label.size.x / 2
+	_debug_label.position.x = 0
+	_debug_label.scale.x = -1 if flip else 1
+	_debug_label.position.x += half_label if flip else -half_label
 
 
 func _check_minimum_stats_present() -> void:
@@ -517,10 +490,10 @@ func _defer_on_depth_changed() -> void:
 
 
 func _get_nearest_to_tank_wall() -> float:
-	var point_on_left: Vector2 = Vector2(TankManager.get_swimmable_area_corners(true, _get_fish_size() / 2).x, position.y)
-	var point_on_right: Vector2 = Vector2(TankManager.get_swimmable_area_corners(false, _get_fish_size() / 2).x, position.y)
-	var point_on_top: Vector2 = Vector2(position.x, TankManager.get_swimmable_area_corners(true, _get_fish_size() / 2).y)
-	var point_on_bottom: Vector2 = Vector2(position.x, TankManager.get_swimmable_area_corners(false, _get_fish_size() / 2).y)
+	var point_on_left: Vector2 = Vector2(0 + _get_fish_size(), position.y)
+	var point_on_right: Vector2 = Vector2(TankManager.get_swimmable_area_corners().x - _get_fish_size(), position.y)
+	var point_on_top: Vector2 = Vector2(position.x, 0 + _get_fish_size())
+	var point_on_bottom: Vector2 = Vector2(position.x, TankManager.get_swimmable_area_corners().y - _get_fish_size())
 
 	var distances: Array[float]
 
@@ -621,13 +594,14 @@ func _on_mouth_area_body_entered(body: Node2D) -> void:
 		return
 
 	var f: Feed = body
-	if f.check_pickable(self):
-		_stat_hunger.increase(f.nutri_value)
-		_stat_energy.increase(f.nutri_value * 0.5)
-		_stat_health.increase(f.nutri_value * 0.75)
-		_calculate_state()
-		if _current_feed_target == f:
-			_current_feed_target = null
+	## COMMENT OUT THIS LINE AS IT REFERS TO FISH AND THIS IS THE BACKUP FILE
+	# if f.check_pickable(self as Fish):
+		# _stat_hunger.increase(f.nutri_value)
+		# _stat_energy.increase(f.nutri_value * 0.5)
+		# _stat_health.increase(f.nutri_value * 0.75)
+		# _calculate_state()
+		# if _current_feed_target == f:
+			# _current_feed_target = null
 
 
 func _on_feed_spawned() -> void:

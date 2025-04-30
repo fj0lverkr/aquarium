@@ -45,18 +45,15 @@ _data = {
 font_size = 8
 
 [node name="Fish" type="CharacterBody2D"]
-scale = Vector2(5, 5)
 collision_mask = 12
 input_pickable = true
 script = ExtResource("1_7qprw")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="FishMainCollider" type="CollisionShape2D" parent="."]
 position = Vector2(0, -3)
 rotation = 1.5708
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-
-[node name="NavigationAgent2D" type="NavigationAgent2D" parent="."]
 
 [node name="MarkerMouthBubbles" type="Marker2D" parent="."]
 
@@ -98,8 +95,6 @@ vertical_alignment = 1
 
 [connection signal="mouse_entered" from="." to="." method="_on_mouse_entered"]
 [connection signal="mouse_exited" from="." to="." method="_on_mouse_exited"]
-[connection signal="navigation_finished" from="NavigationAgent2D" to="." method="_on_navigation_finished"]
-[connection signal="velocity_computed" from="NavigationAgent2D" to="." method="_on_velocity_computed"]
 [connection signal="body_entered" from="MouthArea" to="." method="_on_mouth_area_body_entered"]
 [connection signal="area_shape_entered" from="AvoidanceArea" to="." method="_on_avoidance_area_area_shape_entered"]
 [connection signal="body_entered" from="AvoidanceArea" to="." method="_on_avoidance_area_body_entered"]

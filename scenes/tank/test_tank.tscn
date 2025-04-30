@@ -30,10 +30,8 @@ _value = 200.0
 script = ExtResource("6_4h0qu")
 _collection = Array[ExtResource("5_mu25p")]([SubResource("Resource_ct5cd"), SubResource("Resource_0fc76"), SubResource("Resource_fjkf0")])
 
-[sub_resource type="NavigationPolygon" id="NavigationPolygon_uwjx0"]
-vertices = PackedVector2Array(1137.84, 630.047, 8.90625, 635.938, 4.07812, 48, 1129.15, 48)
-polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3)])
-outlines = Array[PackedVector2Array]([PackedVector2Array(1139, 38, 1148, 640, -1, 646, -6, 38)])
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_i3s2r"]
+size = Vector2(1122, 573)
 
 [node name="TestTank" instance=ExtResource("1_mjk4k")]
 _size = Vector2(1152, 648)
@@ -67,20 +65,20 @@ position = Vector2(219, 409)
 _status_collection = SubResource("Resource_236w8")
 _name = "Bob"
 
-[node name="NavigationRegion2D" parent="." index="5"]
-position = Vector2(13, -39)
-navigation_polygon = SubResource("NavigationPolygon_uwjx0")
-
 [node name="CollisionShape2D" parent="FeederArea" index="0"]
 position = Vector2(582.5, 26.5)
 scale = Vector2(17.6, 1)
 
-[node name="WaterOverlay" parent="." index="9"]
+[node name="WaterOverlay" parent="." index="8"]
 position = Vector2(576, 309)
 scale = Vector2(1.5, 1.5)
 
 [node name="ShaderOverlay" parent="WaterOverlay" index="1"]
 position = Vector2(-2.21729e-05, 11.6667)
 scale = Vector2(6, 3.43229)
+
+[node name="SwimmableShape" parent="SwimmableArea" index="0"]
+position = Vector2(577, 340.5)
+shape = SubResource("RectangleShape2D_i3s2r")
 
 [editable path="WaterOverlay"]
