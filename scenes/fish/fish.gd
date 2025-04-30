@@ -148,7 +148,7 @@ func _setup_initial_values() -> void:
 
 
 func _setup_object_scale() -> void:
-	var scales_by_tank: Dictionary = TankManager.get_object_scales()
+	var scales_by_tank: Dictionary[String, Vector2] = TankManager.get_object_scales()
 	_min_scale = scales_by_tank.min
 	_max_scale = scales_by_tank.max
 	_tank_depth_layers = TankManager.get_depth_layers()
