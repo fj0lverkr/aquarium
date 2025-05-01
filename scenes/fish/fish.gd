@@ -126,9 +126,9 @@ func _setup() -> void:
 		_stat_energy = _status_collection.get_stat_by_type(StatusValue.StatusType.ENERGY)
 		_check_minimum_stats_present()
 		_setup_initial_values()
+		call_deferred("_setup_debug")
 		# TODO replace this when loading fish from savestate
 		call_deferred("_set_random_target_depth", true)
-		call_deferred("_setup_debug")
 	else:
 		queue_free()
 
@@ -170,7 +170,10 @@ func _fish_look_at(where: Vector2) -> void:
 	var direction: Vector2
 
 	if _current_state == State.RESTING or _current_state == State.IDLE:
-		var tween: Tween = create_tween()
+		if _previous_state == State.RESTING or _previous_state == State.IDLE:
+			return
+		
+		var tween: Tween = Util.get_inline_tween()
 		var rotation_time: float = ROTATION_TIME * SLOW_SWIM_FACTOR if _current_state == State.WANDERING else ROTATION_TIME
 		direction = Vector2.RIGHT if _prev_vel_x >= 0.0 else Vector2.LEFT
 		angle = (direction).angle()
@@ -554,6 +557,8 @@ func get_current_stat_value(s: StatusType) -> float:
 # SIGNAL HANDLERS
 
 func _on_tank_changed() -> void:
+	# TODO fish should be loaded from savestate by the tank and not listen for a tank change
+	# current bugs with initial scales etc caused by the current implementation should not be looked at yet.
 	_setup_object_scale()
 
 

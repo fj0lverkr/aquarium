@@ -36,3 +36,13 @@ func calculate_bitmask(values: Array[int]) -> int:
 	for v: int in values:
 		value |= 1 << (v - 1)
 	return value
+
+
+func get_inline_tween() -> Tween:
+	var tween: Tween = create_tween()
+	tween.finished.connect(_on_inline_tween_finished.bind(tween))
+	return tween
+
+
+func _on_inline_tween_finished(t: Tween) -> void:
+	t.kill()
