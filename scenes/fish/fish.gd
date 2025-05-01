@@ -179,11 +179,12 @@ func _fish_look_at(where: Vector2) -> void:
 		angle = (direction).angle()
 		tween.tween_property(self, "rotation", lerp_angle(rotation, angle, 1.0), rotation_time)
 	else:
-		direction = where
-		angle = (where - global_position).angle()
-		look_at(direction)
-	
-	_correct_orientation()
+		var distance = global_position.distance_to(_swim_destination)
+		print(distance)
+		if distance >= 10:
+			direction = where
+			angle = (where - global_position).angle()
+			look_at(direction)
 
 
 func _correct_orientation() -> void:
@@ -210,15 +211,15 @@ func _handle_movement() -> void:
 		_prev_vel_x = velocity.x
 
 	if _is_moving:
-		_fish_look_at(_swim_destination)
-		_set_swim_destination()
-		var distance: Vector2 = _swim_destination - position
+		if _swim_destination == global_position:
+			_set_swim_destination()
+		var distance: Vector2 = _swim_destination - global_position
 		if distance.abs() < Vector2(1.0, 1.0) and _is_moving:
-			position = _swim_destination
+			global_position = _swim_destination
 			_is_moving = false
 			_calculate_state()
-
 		else:
+			_correct_orientation()
 			var speed = _swim_speed
 			match _current_state:
 				State.WANDERING:
@@ -241,6 +242,7 @@ func _set_swim_destination() -> void:
 				_swim_destination = TankManager.clamp_to_tank(_swim_destination, _get_fish_size())
 				if _swim_destination == Vector2.ZERO:
 					_swim_destination = position
+				_fish_look_at(_swim_destination)
 				_set_random_target_depth(false)
 		State.FLEEING:
 			if _swim_destination == position or _swim_destination == Vector2(-1, -1):
