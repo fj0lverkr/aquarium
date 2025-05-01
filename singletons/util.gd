@@ -36,3 +36,15 @@ func calculate_bitmask(values: Array[int]) -> int:
 	for v: int in values:
 		value |= 1 << (v - 1)
 	return value
+
+
+func get_inline_tween(c: Array[Callable] = []) -> Tween:
+	var tween: Tween = create_tween()
+	tween.finished.connect(_on_inline_tween_finished.bind(tween, c))
+	return tween
+
+
+func _on_inline_tween_finished(t: Tween, c: Array[Callable]) -> void:
+	for callable: Callable in c:
+		callable.call()
+	t.kill()

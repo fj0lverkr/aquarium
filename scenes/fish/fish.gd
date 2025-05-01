@@ -12,7 +12,7 @@ const SWIM: String = "swim"
 const ROTATION_TIME: float = 0.4
 const DEPTH_TIME: float = 1.23
 const SLOW_SWIM_FACTOR: int = 2
-const SLOW_DIVE_FACTOR: int = 4
+const SLOW_DIVE_FACTOR: float = 1.5
 
 const StatusType = StatusValue.StatusType
 
@@ -41,9 +41,6 @@ var _debug_label: Label = $DebugLabel
 
 @export
 var _status_collection: StatusCollection
-
-## TODO: possible put these exported vars in an initializer func so a global spawner can set them up for individual fish?
-## or do this from the child classes in stead?
 
 @export
 var _name: String = "Unnamed fish"
@@ -105,7 +102,6 @@ func _ready() -> void:
 		SignalBus.on_feed_spawned.connect(_on_feed_spawned)
 		SignalBus.on_feed_picked.connect(_on_feed_picked)
 		SignalBus.on_object_clicked.connect(_on_object_clicked)
-		call_deferred("_setup_debug")
 		_calculate_state()
 
 
@@ -130,6 +126,9 @@ func _setup() -> void:
 		_stat_energy = _status_collection.get_stat_by_type(StatusValue.StatusType.ENERGY)
 		_check_minimum_stats_present()
 		_setup_initial_values()
+		call_deferred("_setup_debug")
+		# TODO replace this when loading fish from savestate
+		call_deferred("_set_random_target_depth", true)
 	else:
 		queue_free()
 
@@ -149,12 +148,10 @@ func _setup_initial_values() -> void:
 
 
 func _setup_object_scale() -> void:
-	var scales_by_tank: Dictionary = TankManager.get_object_scales()
+	var scales_by_tank: Dictionary[String, Vector2] = TankManager.get_object_scales()
 	_min_scale = scales_by_tank.min
 	_max_scale = scales_by_tank.max
 	_tank_depth_layers = TankManager.get_depth_layers()
-	var initial_dl: int = randi_range(1, _tank_depth_layers)
-	_change_depth(initial_dl)
 
 
 func _setup_debug() -> void:
@@ -163,9 +160,9 @@ func _setup_debug() -> void:
 
 # MOVEMENT FUNCTIONS
 
-func _set_depth() -> void:
+func _set_random_target_depth(initial: bool) -> void:
 	var dl: int = randi_range(1, _tank_depth_layers)
-	_change_depth(dl)
+	_change_depth(dl, initial)
 
 
 func _fish_look_at(where: Vector2) -> void:
@@ -173,17 +170,21 @@ func _fish_look_at(where: Vector2) -> void:
 	var direction: Vector2
 
 	if _current_state == State.RESTING or _current_state == State.IDLE:
-		var tween: Tween = create_tween()
+		if _previous_state == State.RESTING or _previous_state == State.IDLE:
+			return
+		
+		var tween: Tween = Util.get_inline_tween()
 		var rotation_time: float = ROTATION_TIME * SLOW_SWIM_FACTOR if _current_state == State.WANDERING else ROTATION_TIME
 		direction = Vector2.RIGHT if _prev_vel_x >= 0.0 else Vector2.LEFT
 		angle = (direction).angle()
 		tween.tween_property(self, "rotation", lerp_angle(rotation, angle, 1.0), rotation_time)
 	else:
-		direction = where
-		angle = (where - global_position).angle()
-		look_at(direction)
-	
-	_correct_orientation()
+		var distance = global_position.distance_to(_swim_destination)
+		print(distance)
+		if distance >= 10:
+			direction = where
+			angle = (where - global_position).angle()
+			look_at(direction)
 
 
 func _correct_orientation() -> void:
@@ -206,29 +207,19 @@ func _correct_orientation() -> void:
 
 
 func _handle_movement() -> void:
-	# TODO we use the distance to ease out the speed, needs finetuning!
 	if velocity.x != 0.0 and _prev_vel_x != velocity.x:
 		_prev_vel_x = velocity.x
-	if _is_moving:
-		match _current_state:
-			State.WANDERING:
-				_fish_look_at(_swim_destination)
-				var distance: Vector2 = _swim_destination - position
-				if distance.abs() < Vector2(1.0, 1.0) and _is_moving:
-					position = _swim_destination
-					_is_moving = false
-				else:
-					velocity = distance.normalized() * (_swim_speed if _current_state != State.WANDERING else _swim_speed / SLOW_SWIM_FACTOR) + distance / 10
-					move_and_slide()
 
-	_set_swim_destination()
-	if _is_moving and (_current_state == State.WANDERING or _current_state == State.CHASING or _current_state == State.FLEEING):
-		_fish_look_at(_swim_destination)
-		var distance: Vector2 = _swim_destination - position
-		if distance.abs() <= Vector2(2.0, 2.0) and _is_moving:
-			position = _swim_destination
+	if _is_moving:
+		if _swim_destination == global_position:
+			_set_swim_destination()
+		var distance: Vector2 = _swim_destination - global_position
+		if distance.abs() < Vector2(1.0, 1.0) and _is_moving:
+			global_position = _swim_destination
 			_is_moving = false
+			_calculate_state()
 		else:
+			_correct_orientation()
 			var speed = _swim_speed
 			match _current_state:
 				State.WANDERING:
@@ -237,11 +228,10 @@ func _handle_movement() -> void:
 					speed *= 2
 				_:
 					speed = speed
-					
+
+			# TODO we use the distance to ease out the speed, needs finetuning!
 			velocity = distance.normalized() * speed + distance / 10
 			move_and_slide()
-	else:
-		_calculate_state()
 
 
 func _set_swim_destination() -> void:
@@ -252,7 +242,8 @@ func _set_swim_destination() -> void:
 				_swim_destination = TankManager.clamp_to_tank(_swim_destination, _get_fish_size())
 				if _swim_destination == Vector2.ZERO:
 					_swim_destination = position
-				_set_depth()
+				_fish_look_at(_swim_destination)
+				_set_random_target_depth(false)
 		State.FLEEING:
 			if _swim_destination == position or _swim_destination == Vector2(-1, -1):
 				_fish_look_at(Vector2.ZERO)
@@ -260,12 +251,12 @@ func _set_swim_destination() -> void:
 			pass
 
 
-func _change_depth(target_depth_layer: int) -> void:
+func _change_depth(target_depth_layer: int, initial: bool = false) -> void:
 	if _current_depth_layer == target_depth_layer or target_depth_layer == 0:
 		return
 
 	var target_scale: Vector2 = Vector2.ONE * _scale_multiplier
-	var tween_time: float = DEPTH_TIME * SLOW_DIVE_FACTOR if _current_state == State.WANDERING else ROTATION_TIME
+	var tween_time: float = DEPTH_TIME * SLOW_DIVE_FACTOR if _current_state == State.WANDERING else DEPTH_TIME
 	var target_modulate: Color = Constants.COL_DEPTH_MOD[target_depth_layer]
 
 	if target_depth_layer > _tank_depth_layers:
@@ -278,12 +269,13 @@ func _change_depth(target_depth_layer: int) -> void:
 	if target_scale.x < _min_scale.x or target_scale.y < _min_scale.y:
 		target_scale = _min_scale
 
-	target_scale = _get_corrected_scale(target_scale)
-
-	if _current_depth_layer == -1:
+	if _current_depth_layer == -1 or initial:
 		scale = target_scale
 		_sprite.self_modulate = target_modulate
 	else:
+		if _depth_tween and _depth_tween.is_running():
+			#prevent long running tweens from stacking and ruining the depth effect
+			return
 		_depth_tween = create_tween()
 		_depth_tween.finished.connect(_on_depth_tween_finished)
 		tween_time *= absf(_current_depth_layer - target_depth_layer)
@@ -377,6 +369,9 @@ func _handle_current_state() -> void:
 			_is_moving = false
 			if _anim_player.is_playing():
 				_anim_player.stop()
+			if _depth_tween and _depth_tween.is_running():
+				#prevent shrinking/growing when fish is idle
+				_depth_tween.kill()
 			_idle_animation()
 
 
@@ -385,8 +380,7 @@ func _calculate_state() -> void:
 		State.IDLE, State.WANDERING:
 			var dice_roll: float = randf()
 			if dice_roll >= 0.5:
-				#_set_current_state(State.IDLE)
-				_set_current_state(State.RESTING)
+				_set_current_state(State.IDLE)
 			else:
 				_set_current_state(State.WANDERING)
 		State.RESTING:
@@ -492,13 +486,6 @@ func _is_facing_right() -> bool:
 	return _marker_mouth_eat.global_position.x > global_position.x or velocity.x > 0
 
 
-func _get_corrected_scale(target: Vector2) -> Vector2:
-	var corrected_scale: Vector2 = Vector2.ZERO
-	corrected_scale.x = target.x if scale.x >= 0 else -target.x
-	corrected_scale.y = target.y if scale.y >= 0 else -target.y
-	return corrected_scale
-
-
 func _is_body_on_same_depth_layer(body: Node) -> bool:
 	if not body.has_method("get_depth_layer"):
 		return false
@@ -572,6 +559,8 @@ func get_current_stat_value(s: StatusType) -> float:
 # SIGNAL HANDLERS
 
 func _on_tank_changed() -> void:
+	# TODO fish should be loaded from savestate by the tank and not listen for a tank change
+	# current bugs with initial scales etc caused by the current implementation should not be looked at yet.
 	_setup_object_scale()
 
 

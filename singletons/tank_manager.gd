@@ -39,7 +39,7 @@ func clamp_to_tank(pos: Vector2, object_size: float) -> Vector2:
 	return new_pos
 
 
-func get_object_scales() -> Dictionary:
+func get_object_scales() -> Dictionary[String, Vector2]:
 	if !_current_tank:
 		return {}
 	var min_scale: float = _current_tank.get_object_scales().x
