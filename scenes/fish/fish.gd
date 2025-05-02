@@ -99,7 +99,6 @@ func _ready() -> void:
 		queue_free()
 	else:
 		_setup()
-		SignalBus.on_feed_spawned.connect(_on_feed_spawned)
 		SignalBus.on_feed_picked.connect(_on_feed_picked)
 		SignalBus.on_object_clicked.connect(_on_object_clicked)
 		_calculate_state()
@@ -108,6 +107,7 @@ func _ready() -> void:
 func _physics_process(_delta: float) -> void:
 	if TankManager.get_debug_mode():
 		_set_debug_label()
+	_calculate_feed_target()
 	if _current_state != State.RESTING and _current_state != State.IDLE:
 		if _current_state == State.CHASING:
 			_set_swim_destination()
@@ -228,7 +228,7 @@ func _handle_movement() -> void:
 				State.FLEEING:
 					speed *= 2
 				State.CHASING:
-					speed *= 1.5
+					speed *= 1.2
 				_:
 					speed = speed
 
@@ -251,8 +251,9 @@ func _set_swim_destination() -> void:
 			if _swim_destination == position or _swim_destination == Vector2(-1, -1):
 				_fish_look_at(Vector2.ZERO)
 		State.CHASING:
-			_swim_destination = _current_feed_target.global_position
-			_fish_look_at(_swim_destination)
+			if _current_feed_target:
+				_swim_destination = _current_feed_target.global_position
+				_fish_look_at(_swim_destination)
 		_:
 			pass
 
@@ -375,6 +376,7 @@ func _handle_current_state() -> void:
 			_anim_player.play()
 		State.RESTING, State.IDLE:
 			_is_moving = false
+			_set_swim_destination()
 			if _anim_player.is_playing():
 				_anim_player.stop()
 			if _depth_tween and _depth_tween.is_running():
@@ -407,13 +409,22 @@ func _calculate_state() -> void:
 					_is_moving = true
 				else:
 					_set_current_state(State.IDLE)
-	_handle_current_state()
+		State.CHASING:
+			if _previous_state != State.CHASING:
+				_set_current_state(_previous_state)
+			else:
+				var dice_roll: float = randf()
+				if dice_roll >= 0.5:
+					_set_current_state(State.IDLE)
+				else:
+					_set_current_state(State.WANDERING)
 
 
 func _set_current_state(new_state: State) -> void:
 	_previous_state = _current_state
 	_current_state = new_state
 	SignalBus.on_fish_state_changed.emit(self, _previous_state, _current_state)
+	_handle_current_state()
 
 
 # RESOURCE FUNCTIONS
@@ -430,6 +441,8 @@ func _calculate_feed_target() -> void:
 
 	if feed.is_empty():
 		_current_feed_target = null
+		if _current_state == State.CHASING:
+			_calculate_state()
 		return
 
 	var filtered_feed: Array = feed.filter(_filter_feed_by_dl)
@@ -445,9 +458,10 @@ func _calculate_feed_target() -> void:
 					_current_feed_target = f
 
 	if _current_feed_target != null:
-		_set_current_state(State.CHASING)
 		if _current_feed_target.get_depth_layer() != _current_depth_layer:
 			_change_depth(_current_feed_target.get_depth_layer())
+		if _current_state != State.CHASING:
+			_set_current_state(State.CHASING)
 
 
 # PHYSICS FUNCTIONS
@@ -621,13 +635,8 @@ func _on_mouth_area_body_entered(body: Node2D) -> void:
 		_stat_hunger.increase(f.nutri_value)
 		_stat_energy.increase(f.nutri_value * 0.5)
 		_stat_health.increase(f.nutri_value * 0.75)
-		_calculate_state()
 		if _current_feed_target == f:
 			_current_feed_target = null
-
-
-func _on_feed_spawned() -> void:
-	_calculate_feed_target()
 
 
 func _on_feed_picked(by: Fish) -> void:

@@ -33,7 +33,6 @@ var nutri_value: float = 50.0
 func _ready() -> void:
 	_float_timer.wait_time = randf_range(0.25, 10.0)
 	_float_timer.start()
-	SignalBus.on_feed_spawned.emit()
 
 
 func _physics_process(delta: float) -> void:
@@ -82,7 +81,7 @@ func _setup_depth(dl: int) -> void:
 #Public methods
 
 func check_pickable(checker: Fish = null) -> bool:
-	if _picked_by == null:
+	if _picked_by == null and !_floating:
 		_picked_by = checker
 		if checker != null:
 			_collider.set_deferred("disabled", true)
@@ -118,7 +117,7 @@ func _on_float_timer_timeout() -> void:
 	can_sleep = true
 
 
-func _on_body_shape_entered(_body_rid:RID, body:Node, _body_shape_index:int, _local_shape_index:int) -> void:
+func _on_body_shape_entered(_body_rid: RID, body: Node, _body_shape_index: int, _local_shape_index: int) -> void:
 	if body is TankBottom:
 		_aquatic_move_stopped = true
 		_degrade_timer.start()
