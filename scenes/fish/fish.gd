@@ -109,6 +109,8 @@ func _physics_process(_delta: float) -> void:
 	if TankManager.get_debug_mode():
 		_set_debug_label()
 	if _current_state != State.RESTING and _current_state != State.IDLE:
+		if _current_state == State.CHASING:
+			_set_swim_destination()
 		_handle_movement()
 
 
@@ -180,7 +182,6 @@ func _fish_look_at(where: Vector2) -> void:
 		tween.tween_property(self, "rotation", lerp_angle(rotation, angle, 1.0), rotation_time)
 	else:
 		var distance = global_position.distance_to(_swim_destination)
-		print(distance)
 		if distance >= 10:
 			direction = where
 			angle = (where - global_position).angle()
@@ -226,6 +227,8 @@ func _handle_movement() -> void:
 					speed /= 2
 				State.FLEEING:
 					speed *= 2
+				State.CHASING:
+					speed *= 1.5
 				_:
 					speed = speed
 
@@ -247,6 +250,9 @@ func _set_swim_destination() -> void:
 		State.FLEEING:
 			if _swim_destination == position or _swim_destination == Vector2(-1, -1):
 				_fish_look_at(Vector2.ZERO)
+		State.CHASING:
+			_swim_destination = _current_feed_target.global_position
+			_fish_look_at(_swim_destination)
 		_:
 			pass
 
@@ -350,6 +356,8 @@ func _handle_current_state() -> void:
 
 	match _current_state:
 		State.CHASING, State.FLEEING:
+			_is_moving = true
+			_set_swim_destination()
 			if _anim_player.current_animation == SWIM and _anim_player.is_playing():
 				return
 			_anim_player.current_animation = SWIM
@@ -418,10 +426,7 @@ func _calculate_resources_spent() -> void:
 
 
 func _calculate_feed_target() -> void:
-	if _current_state != State.CHASING:
-		return
-
-	var feed: Array = get_tree().get_nodes_in_group(Constants.GRP_FEED)
+	var feed: Array[Node] = get_tree().get_nodes_in_group(Constants.GRP_FEED)
 
 	if feed.is_empty():
 		_current_feed_target = null
@@ -439,8 +444,10 @@ func _calculate_feed_target() -> void:
 				if f.check_pickable():
 					_current_feed_target = f
 
-	if _current_feed_target != null and _current_feed_target.get_depth_layer() != _current_depth_layer:
-		_change_depth(_current_feed_target.get_depth_layer())
+	if _current_feed_target != null:
+		_set_current_state(State.CHASING)
+		if _current_feed_target.get_depth_layer() != _current_depth_layer:
+			_change_depth(_current_feed_target.get_depth_layer())
 
 
 # PHYSICS FUNCTIONS
