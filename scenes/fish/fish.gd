@@ -66,8 +66,8 @@ var _min_scale: Vector2
 var _max_scale: Vector2
 var _tank_depth_layers: int
 var _current_depth_layer: int = 1
-var _current_state: State = State.IDLE
-var _previous_state: State = State.IDLE
+var _current_state: State
+var _previous_state: State
 var _prev_vel_x: float = 0.0
 var _distance_traveled: float = 0.0
 var _current_feed_target: Feed = null
@@ -99,7 +99,6 @@ func _ready() -> void:
 		queue_free()
 	else:
 		_setup()
-		SignalBus.on_feed_picked.connect(_on_feed_picked)
 		SignalBus.on_object_clicked.connect(_on_object_clicked)
 		_calculate_state()
 
@@ -107,8 +106,8 @@ func _ready() -> void:
 func _physics_process(_delta: float) -> void:
 	if TankManager.get_debug_mode():
 		_set_debug_label()
-	_calculate_feed_target()
 	if _current_state != State.RESTING and _current_state != State.IDLE:
+		_calculate_feed_target()
 		if _current_state == State.CHASING:
 			_set_swim_destination()
 		_handle_movement()
@@ -376,7 +375,6 @@ func _handle_current_state() -> void:
 			_anim_player.play()
 		State.RESTING, State.IDLE:
 			_is_moving = false
-			_set_swim_destination()
 			if _anim_player.is_playing():
 				_anim_player.stop()
 			if _depth_tween and _depth_tween.is_running():
@@ -410,14 +408,7 @@ func _calculate_state() -> void:
 				else:
 					_set_current_state(State.IDLE)
 		State.CHASING:
-			if _previous_state != State.CHASING:
-				_set_current_state(_previous_state)
-			else:
-				var dice_roll: float = randf()
-				if dice_roll >= 0.5:
-					_set_current_state(State.IDLE)
-				else:
-					_set_current_state(State.WANDERING)
+			_set_current_state(State.WANDERING)
 
 
 func _set_current_state(new_state: State) -> void:
@@ -590,9 +581,9 @@ func _on_sv_depleted(s: StatusValue.StatusType) -> void:
 		StatusValue.StatusType.HEALTH:
 			pass
 		StatusValue.StatusType.ENERGY:
-			_current_state = State.RESTING
+			_set_current_state(State.RESTING)
 		StatusValue.StatusType.HUNGER:
-			_current_state = State.CHASING
+			pass
 
 
 func _on_sv_maxed_out(s: StatusValue.StatusType) -> void:
@@ -600,7 +591,7 @@ func _on_sv_maxed_out(s: StatusValue.StatusType) -> void:
 		StatusValue.StatusType.HEALTH:
 			pass
 		StatusValue.StatusType.HUNGER, StatusValue.StatusType.ENERGY:
-			_current_state = State.IDLE
+			pass
 
 
 func _on_idle_tween_finished() -> void:
@@ -635,15 +626,8 @@ func _on_mouth_area_body_entered(body: Node2D) -> void:
 		_stat_hunger.increase(f.nutri_value)
 		_stat_energy.increase(f.nutri_value * 0.5)
 		_stat_health.increase(f.nutri_value * 0.75)
-		if _current_feed_target == f:
-			_current_feed_target = null
-
-
-func _on_feed_picked(by: Fish) -> void:
-	if by == self:
-		return
-	_calculate_feed_target()
-
+		_current_feed_target = null
+		
 
 func _on_mouse_entered() -> void:
 	_set_clickable(true)
