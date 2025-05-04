@@ -27,39 +27,44 @@ signal on_maxed_out(s: StatusType)
 
 
 func _clamp_value() -> void:
-    _value = _value if _value <= _max_value else _max_value
-    _value = _value if _value > 0.0 else 0.0
-    if _value <= 0.0:
-        on_depleted.emit(_type)
-    elif _value == _max_value:
-        on_maxed_out.emit(_type)
+	_value = _value if _value <= _max_value else _max_value
+	_value = _value if _value > 0.0 else 0.0
+	if _value <= 0.0:
+		on_depleted.emit(_type)
+	elif _value == _max_value:
+		on_maxed_out.emit(_type)
 
 
 func setup() -> void:
-    _clamp_value()
+	_clamp_value()
 
 
 func get_stat_name() -> String:
-    return StatusType.keys()[_type]
+	return StatusType.keys()[_type]
 
 
 func get_stat_type() -> StatusType:
-    return _type
+	return _type
 
 
 func get_stat_value() -> float:
-    return _value
+	return _value
 
 
 func get_stat_max_value() -> float:
-    return _max_value
+	return _max_value
 
 
 func decrease(by: float) -> void:
-    _value -= by
-    _clamp_value()
+	_value -= by
+	_clamp_value()
 
 
 func increase(by: float) -> void:
-    _value += by
-    _clamp_value()
+	_value += by
+	_clamp_value()
+
+
+func set_stat_value(value: float) -> void:
+	_value = value
+	_clamp_value()

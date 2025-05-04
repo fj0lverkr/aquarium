@@ -568,6 +568,14 @@ func get_current_stat_value(s: StatusType) -> float:
 	return _status_collection.get_stat_by_type(s).get_stat_value()
 
 
+func set_stat_value(s: StatusType, v: float) -> void:
+	_status_collection.get_stat_by_type(s).set_stat_value(v)
+
+
+func unset_feed_target() -> void:
+	_current_feed_target = null
+
+
 # SIGNAL HANDLERS
 
 func _on_tank_changed() -> void:
@@ -616,18 +624,6 @@ func _on_avoidance_area_area_shape_entered(_area_rid: RID, area: Area2D, _area_s
 	if area.get_parent() is Fish and _current_state != State.RESTING and _is_area_on_same_depth_layer(area):
 		pass
 
-
-func _on_mouth_area_body_entered(body: Node2D) -> void:
-	if not body is Feed:
-		return
-
-	var f: Feed = body
-	if f.check_pickable(self):
-		_stat_hunger.increase(f.nutri_value)
-		_stat_energy.increase(f.nutri_value * 0.5)
-		_stat_health.increase(f.nutri_value * 0.75)
-		_current_feed_target = null
-		
 
 func _on_mouse_entered() -> void:
 	_set_clickable(true)
