@@ -33,7 +33,7 @@ var _anim_player: AnimationPlayer = $AnimationPlayer
 @onready
 var _sprite: Sprite2D = $Sprite2D
 @onready
-var _mouth_area: Area2D = $MouthArea
+var _mouth_area: Mouth = $MouthArea
 @onready
 var _avoidance_area: Area2D = $AvoidanceArea
 @onready
@@ -223,11 +223,11 @@ func _handle_movement() -> void:
 			var speed = _swim_speed
 			match _current_state:
 				State.WANDERING:
-					speed /= 2
+					speed *= 0.5
 				State.FLEEING:
 					speed *= 2
 				State.CHASING:
-					speed *= 1.2
+					speed *= 0.6
 				_:
 					speed = speed
 
@@ -354,25 +354,19 @@ func _handle_current_state() -> void:
 	if _current_state != State.RESTING:
 		_sprite.frame = _idle_frame_index
 
+	_set_swim_destination()
+
 	match _current_state:
-		State.CHASING, State.FLEEING:
+		State.CHASING, State.FLEEING, State.WANDERING:
 			_is_moving = true
-			_set_swim_destination()
+			_anim_player.speed_scale = 0.6 if _current_state == State.CHASING else 2.0
+			_anim_player.speed_scale = 0.5 if _current_state == State.WANDERING else _anim_player.speed_scale
 			if _anim_player.current_animation == SWIM and _anim_player.is_playing():
 				return
 			_anim_player.current_animation = SWIM
-			_anim_player.speed_scale = 1.0 if _current_state == State.CHASING else 2.0
 			_anim_player.play()
 		State.SEARCHING:
 			pass
-		State.WANDERING:
-			_is_moving = true
-			_set_swim_destination()
-			if _anim_player.current_animation == SWIM and _anim_player.is_playing():
-				return
-			_anim_player.current_animation = SWIM
-			_anim_player.speed_scale = 0.5
-			_anim_player.play()
 		State.RESTING, State.IDLE:
 			_is_moving = false
 			if _anim_player.is_playing():
@@ -393,7 +387,7 @@ func _calculate_state() -> void:
 				_set_current_state(State.WANDERING)
 		State.RESTING:
 			var dice_roll: float = randf()
-			if dice_roll >= 0.4:
+			if dice_roll >= 0.3:
 				_set_current_state(State.WANDERING)
 			else:
 				_set_current_state(State.IDLE)
@@ -568,8 +562,8 @@ func get_current_stat_value(s: StatusType) -> float:
 	return _status_collection.get_stat_by_type(s).get_stat_value()
 
 
-func set_stat_value(s: StatusType, v: float) -> void:
-	_status_collection.get_stat_by_type(s).set_stat_value(v)
+func increase_stat_value(s: StatusType, v: float) -> void:
+	_status_collection.get_stat_by_type(s).increase(v)
 
 
 func unset_feed_target() -> void:

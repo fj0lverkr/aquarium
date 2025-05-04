@@ -16,7 +16,7 @@ func _on_mouth_area_body_entered(body: Node2D) -> void:
 	var f: Feed = body
 	if f.check_pickable(_parent):
 		# TODO: Play around with these values once we fully implement the stat value system
-		_parent.set_stat_value(Fish.StatusType.HUNGER, f.nutri_value)
-		_parent.set_stat_value(Fish.StatusType.ENERGY, f.nutri_value * 0.5)
-		_parent.set_stat_value(Fish.StatusType.HEALTH, f.nutri_value * 0.2)
+		_parent.increase_stat_value(Fish.StatusType.HUNGER, f.nutri_value)
+		_parent.increase_stat_value(Fish.StatusType.ENERGY, f.nutri_value * 0.5)
+		_parent.increase_stat_value(Fish.StatusType.HEALTH, f.nutri_value * 0.2)
 		_parent.unset_feed_target()
