@@ -541,7 +541,7 @@ func _calculate_escape_vector(from: Vector2) -> Vector2:
 	var radius: float = _get_nearest_to_tank_wall()
 	var angle_to: float = global_position.angle_to(from)
 	var angle_reverse: float = angle_to - PI
-	var escape_to: Vector2 = Vector2(position.x + radius * cos(angle_reverse), position.y + radius * sin(angle_reverse))
+	var escape_to: Vector2 = Vector2(global_position.x + radius * cos(angle_reverse), global_position.y + radius * sin(angle_reverse))
 	escape_to = TankManager.clamp_to_tank(escape_to, _get_fish_size())
 	return escape_to
 
